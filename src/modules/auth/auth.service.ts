@@ -1,6 +1,7 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException,NotFoundException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { SignupDto } from './dto/signup.dto';
+import { LoginDto } from './dto/login.dto';
 
 @Injectable()
 export class AuthService {
@@ -29,4 +30,31 @@ export class AuthService {
 
     return newUser;
   }
+
+  async login(loginDto: LoginDto) {
+    // চেক করা হচ্ছে ইউজার ফোন বা ইমেইল কোনোটি দিয়েছে কিনা
+    if (!loginDto.phone && !loginDto.email) {
+      throw new BadRequestException('Please provide either phone or email');
+    }
+
+    let user;
+
+    // ফোন নাম্বার দিয়ে ডাটাবেসে খোঁজা
+    if (loginDto.phone) {
+      user = await this.usersService.findByPhone(loginDto.phone);
+    } 
+    // ইমেইল দিয়ে ডাটাবেসে খোঁজা
+    else if (loginDto.email) {
+      user = await this.usersService.findByEmail(loginDto.email);
+    }
+
+    // ইউজার না পাওয়া গেলে এরর থ্রো করা
+    if (!user) {
+      throw new NotFoundException('User not found. Please sign up first.');
+    }
+
+    // ইউজার পাওয়া গেলে তার সম্পূর্ণ প্রোফাইল রিটার্ন করা
+    return user;
+  }
+
 }
