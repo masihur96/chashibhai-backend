@@ -1,17 +1,52 @@
 import { Injectable } from '@nestjs/common';
-import{PinoLogger} from 'nestjs-pino';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Prisma, User } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
-    constructor(private readonly logger: PinoLogger) {      
-        this.logger.setContext(UsersService.name);
-    }
+  // PrismaService-কে ইনজেক্ট করা হলো ডাটাবেসের সাথে কথা বলার জন্য
+  constructor(private prisma: PrismaService) {}
 
-  
-    findAllUsers() {
-        this.logger.info('Fetching all users');
-        // Logic to fetch all users from the database
-        return [];
-    }
+  // ID দিয়ে ইউজার খোঁজা
+  async findById(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
+  }
 
+  // ফোন নাম্বার দিয়ে ইউজার খোঁজা
+  async findByPhone(phone: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { phone },
+    });
+  }
+
+  // ইমেইল দিয়ে ইউজার খোঁজা
+  async findByEmail(email: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
+  }
+
+  // নতুন ইউজার তৈরি করা
+  async create(data: Prisma.UserCreateInput): Promise<User> {
+    return this.prisma.user.create({
+      data,
+    });
+  }
+
+  // ইউজারের তথ্য আপডেট করা
+  async update(id: string, data: Prisma.UserUpdateInput): Promise<User> {
+    return this.prisma.user.update({
+      where: { id },
+      data,
+    });
+  }
+
+  // ইউজার মুছে ফেলা (Delete)
+  async delete(id: string): Promise<User> {
+    return this.prisma.user.delete({
+      where: { id },
+    });
+  }
 }
