@@ -1,13 +1,41 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Get a free hosted Postgres database in seconds: `npx create-db`
-
+// ১. Prisma ক্লায়েন্ট জেনারেটর
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider = "prisma-client-js"
 }
 
+// ২. ডাটাবেস কানেকশন (Prisma v7: URL is configured in prisma.config.ts)
 datasource db {
   provider = "postgresql"
+}
+
+// ৩. Role Enum
+enum Role {
+  FARMER
+  BUYER
+  ADMIN
+}
+
+// ৪. Status Enum
+enum Status {
+  PENDING
+  ACTIVE
+  BLOCKED
+}
+
+// ৫. User Model
+model User {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String
+  phone          String?  @unique
+  email          String?  @unique
+  role           Role     @default(BUYER)
+  avatar         String?
+  rating         Float    @default(0.0)
+  wallet_balance Float    @default(0.0)
+  is_verified    Boolean  @default(false)
+  status         Status   @default(PENDING)
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@map("users")
 }
