@@ -9,6 +9,7 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // মাইগ্রেশনের জন্য আমরা সরাসরি Direct URL ব্যবহার করব (PgBouncer bypassed)
+    url: process.env["DIRECT_URL"],
   },
 });

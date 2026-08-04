@@ -12,7 +12,11 @@ export class AuthService {
     private readonly jwtService: JwtService,
   ) {}
 
+<<<<<<< HEAD
   async signup(signupDto: SignupDto) { 
+=======
+  async signup(signupDto: SignupDto) {
+>>>>>>> origin/main
     // চেক করা হচ্ছে ইউজার আগে থেকেই আছে কিনা
     if (signupDto.phone) {
       const existingUser = await this.usersService.findByPhone(signupDto.phone);
