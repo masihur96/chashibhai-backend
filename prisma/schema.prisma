@@ -20,6 +20,8 @@ enum Status {
   PENDING
   ACTIVE
   BLOCKED
+  APPROVED
+  REJECTED
 }
 
 // ৫. User Model
@@ -33,9 +35,11 @@ model User {
   rating         Float    @default(0.0)
   wallet_balance Float    @default(0.0)
   is_verified    Boolean  @default(false)
-  status         Status   @default(PENDING)
+  status         Status   @default(PENDING)// স্ট্যাটাস: UNVERIFIED, PENDING, APPROVED, REJECTED
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
+  nidUrl            String?   // NID কার্ডের ছবির লিংক
+
 
   @@map("users")
 }

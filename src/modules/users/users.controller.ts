@@ -1,4 +1,4 @@
-import { Controller, Get, Patch,Post,Delete, Body, UseGuards, NotFoundException,UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Patch,Post,Delete, Body, UseGuards, NotFoundException,UseInterceptors, UploadedFile, BadRequestException,Param } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'; 
@@ -122,6 +122,55 @@ export class UsersController {
   @ApiOperation({ summary: 'Admin Dashboard Data (Testing)' })
   getAdminData() {
     return { message: 'Welcome Admin! You have special access.' };
+  }
+
+  @Post('verify/submit')
+  @ApiOperation({ summary: 'Submit NID for account verification' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file', {
+    limits: { fileSize: 5 * 1024 * 1024 }, // সর্বোচ্চ 5MB
+  }))
+  async submitVerification(
+    @CurrentUser() user: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('NID Document is required');
+
+    // Supabase-এ 'avatars' বাকেটে (বা নতুন 'documents' বাকেটে) ফাইল আপলোড
+    const nidUrl = await this.supabaseService.uploadAvatar(`nid_${user.supabaseId || user.id}`, file);
+
+    const dbUser = await this.usersService.findByPhone(user.phone) || await this.usersService.findByEmail(user.email);
+    
+    // ইউজারের স্ট্যাটাস PENDING করে দেওয়া
+    await this.usersService.submitVerification(dbUser!.id, nidUrl);
+
+    return { message: 'Verification request submitted successfully. Please wait for admin approval.', nidUrl };
+  }
+
+  // ==========================================
+  // ২. অ্যাডমিন API: ভেরিফিকেশন অ্যাপ্রুভ/রিজেক্ট করা
+  // ==========================================
+  @Patch('verify/approve/:userId')
+  @UseGuards(RolesGuard) // Role চেক করবে
+  @Roles(Role.ADMIN) // শুধুমাত্র ADMIN এই এপিআই কল করতে পারবে
+  @ApiOperation({ summary: 'Admin Only: Approve or reject user verification' })
+  async approveVerification(
+    @Param('userId') userId: string,
+    @Body('action') action: 'APPROVE' | 'REJECT', // বডিতে action পাঠাতে হবে
+  ) {
+    if (action === 'APPROVE') {
+      await this.usersService.updateVerificationStatus(userId, 'APPROVED', true);
+      return { message: 'User verification approved.' };
+    } else {
+      await this.usersService.updateVerificationStatus(userId, 'REJECTED', false);
+      return { message: 'User verification rejected.' };
+    }
   }
 
 }
