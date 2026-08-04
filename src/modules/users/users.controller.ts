@@ -7,6 +7,11 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagg
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 import { SupabaseService } from '../supabase/supabase.service'; // কনস্ট্রাক্টরে ঢোকাতে হবে
+
+import { Roles } from '../../common/decorators/roles.decorator';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Role } from '@prisma/client';
+
 @ApiTags('Users Profile')
 @ApiBearerAuth() // Swagger-এ টোকেন দেওয়ার অপশন চালু করবে
 @UseGuards(JwtAuthGuard) // এই কন্ট্রোলারের সব API টোকেন ছাড়া ব্লক করে দেবে
@@ -109,6 +114,14 @@ export class UsersController {
     }
 
     return { message: 'Avatar deleted successfully' };
+  }
+
+  @Get('admin-only')
+  @UseGuards(JwtAuthGuard, RolesGuard) // প্রথমে টোকেন চেক করবে, তারপর Role চেক করবে
+  @Roles(Role.ADMIN) // শুধু ADMIN-রাই এটি ব্যবহার করতে পারবে
+  @ApiOperation({ summary: 'Admin Dashboard Data (Testing)' })
+  getAdminData() {
+    return { message: 'Welcome Admin! You have special access.' };
   }
 
 }
