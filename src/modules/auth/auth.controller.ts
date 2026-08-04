@@ -4,6 +4,7 @@ import { SignupDto } from './dto/signup.dto';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
 
+import { RefreshDto } from './dto/refresh.dto';
 
 @ApiTags('Authentication') // Swagger-এ সুন্দরভাবে দেখানোর জন্য
 @Controller('auth')
@@ -25,5 +26,14 @@ export class AuthController {
   @ApiResponse({ status: 404, description: 'User not found in the database.' })
   async login(@Body() loginDto: LoginDto) {
     return this.authService.login(loginDto);
+  }
+
+  @Post('refresh')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Get a new access token using a refresh token' })
+  @ApiResponse({ status: 200, description: 'New tokens generated successfully.' })
+  @ApiResponse({ status: 401, description: 'Invalid or expired refresh token.' })
+  async refresh(@Body() refreshDto: RefreshDto) {
+    return this.authService.refresh(refreshDto);
   }
 }

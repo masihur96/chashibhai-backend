@@ -1,8 +1,9 @@
-import { Injectable, BadRequestException,NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException,NotFoundException,UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtService } from '@nestjs/jwt';
+import { RefreshDto } from './dto/refresh.dto'; 
 
 @Injectable()
 export class AuthService {
@@ -53,21 +54,43 @@ async login(loginDto: LoginDto) {
       throw new NotFoundException('User not found. Please sign up first.');
     }
 
-    // ইউজারের ডেটা দিয়ে একটি টোকেন তৈরি করা হচ্ছে
-    const payload = { 
-      sub: user.id, 
-      phone: user.phone, 
-      email: user.email, 
-      role: user.role 
-    };
+    const payload = { sub: user.id, phone: user.phone, email: user.email, role: user.role };
     
-    const accessToken = this.jwtService.sign(payload);
+    // Access Token তৈরি (মেয়াদ ১৫ মিনিট)
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+    
+    // Refresh Token তৈরি (মেয়াদ ৭ দিন)
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
 
-    // এখন ইউজার ডেটার সাথে টোকেনটিও রিটার্ন করবে
     return {
       user,
       accessToken,
+      refreshToken,
     };
   }
 
+  // নতুন ফাংশন: রিফ্রেশ টোকেন চেক করে নতুন টোকেন দেওয়া
+  async refresh(refreshDto: RefreshDto) {
+    try {
+      // ১. টোকেনটি ভেরিফাই করা হচ্ছে
+      const payload = this.jwtService.verify(refreshDto.refreshToken, {
+        secret: process.env.SUPABASE_JWT_SECRET,
+      });
+
+      // ২. নতুন টোকেনের জন্য পে-লোড তৈরি
+      const newPayload = { sub: payload.sub, phone: payload.phone, email: payload.email, role: payload.role };
+      
+      // ৩. নতুন টোকেন জেনারেট
+      const newAccessToken = this.jwtService.sign(newPayload, { expiresIn: '15m' });
+      const newRefreshToken = this.jwtService.sign(newPayload, { expiresIn: '7d' });
+
+      return {
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken,
+      };
+    } catch (error) {
+      // টোকেনের মেয়াদ শেষ হয়ে গেলে বা ভুল হলে এই এরর থ্রো করবে
+      throw new UnauthorizedException('Invalid or expired refresh token. Please login again.');
+    }
+  }
 }
