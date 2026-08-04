@@ -1,16 +1,21 @@
-import { Controller, Get, Patch, Body, UseGuards, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Patch,Post,Delete, Body, UseGuards, NotFoundException,UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'; 
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
-
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
+import { SupabaseService } from '../supabase/supabase.service'; // কনস্ট্রাক্টরে ঢোকাতে হবে
 @ApiTags('Users Profile')
 @ApiBearerAuth() // Swagger-এ টোকেন দেওয়ার অপশন চালু করবে
 @UseGuards(JwtAuthGuard) // এই কন্ট্রোলারের সব API টোকেন ছাড়া ব্লক করে দেবে
 @Controller('users/profile')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly supabaseService: SupabaseService
+  ) {}
 
   @Get()
   @ApiOperation({ summary: 'Get current logged-in user profile' })
@@ -54,4 +59,56 @@ export class UsersController {
     // এবার ইউজারের আইডি দিয়ে ডেটা আপডেট করব
     return this.usersService.update(dbUser.id, updateData);
   }
+
+  @Post('avatar')
+  @ApiOperation({ summary: 'Upload profile avatar' })
+  @ApiConsumes('multipart/form-data') // Swagger-এ ফাইল আপলোডের অপশন দেখানোর জন্য
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: { type: 'string', format: 'binary' },
+      },
+    },
+  })
+  @UseInterceptors(FileInterceptor('file', {
+    limits: { fileSize: 2 * 1024 * 1024 }, // সর্বোচ্চ 2MB সাইজ
+    fileFilter: (req, file, cb) => {
+      if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
+        return cb(new BadRequestException('Only image files are allowed!'), false);
+      }
+      cb(null, true);
+    },
+  }))
+  async uploadAvatar(
+    @CurrentUser() user: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) throw new BadRequestException('File is required');
+
+    // 1. Supabase-এ ছবি আপলোড করে URL নিয়ে আসা
+    const avatarUrl = await this.supabaseService.uploadAvatar(user.supabaseId || user.phone || user.id, file);
+
+    // 2. ডাটাবেসে ইউজারের প্রোফাইলে URL টি সেভ করা
+    const dbUser = await this.usersService.findByPhone(user.phone) || await this.usersService.findByEmail(user.email);
+    const updatedUser = await this.usersService.update(dbUser!.id, { avatar: avatarUrl });
+
+    return { message: 'Avatar uploaded successfully', avatarUrl: updatedUser.avatar };
+  }
+
+  @Delete('avatar')
+  @ApiOperation({ summary: 'Delete profile avatar' })
+  async deleteAvatar(@CurrentUser() user: any) {
+    const dbUser = await this.usersService.findByPhone(user.phone) || await this.usersService.findByEmail(user.email);
+    
+    if (dbUser!.avatar) {
+      // 1. Supabase Storage থেকে ডিলিট করা
+      await this.supabaseService.deleteAvatar(user.supabaseId || user.phone || user.id, dbUser!.avatar);
+      // 2. ডাটাবেস থেকে লিংক মুছে ফেলা
+      await this.usersService.update(dbUser!.id, { avatar: null });
+    }
+
+    return { message: 'Avatar deleted successfully' };
+  }
+
 }
