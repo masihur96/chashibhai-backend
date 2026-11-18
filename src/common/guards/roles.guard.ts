@@ -26,8 +26,11 @@ export class RolesGuard implements CanActivate {
       throw new ForbiddenException('Access denied: Role not found');
     }
 
-    // ইউজারের Role আমাদের বলে দেওয়া Role-গুলোর মধ্যে আছে কিনা তা চেক করা
-    const hasRole = requiredRoles.includes(user.role);
+    // ইউজারের Role আমাদের বলে দেওয়া Role-গুলোর মধ্যে আছে কিনা তা চেক করা (case-insensitive)
+    const userRole = String(user.role).toUpperCase();
+    const hasRole = requiredRoles.some(
+      (role) => String(role).toUpperCase() === userRole,
+    );
     
     if (!hasRole) {
       throw new ForbiddenException('Access denied: You do not have permission for this action');

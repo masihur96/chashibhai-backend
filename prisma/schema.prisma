@@ -54,6 +54,9 @@ model Profile {
   nid_verified   Boolean  @default(false)
   wallet_balance Float    @default(0.0)
   avatar_url     String?
+  rating         Float    @default(0.0)
+  rating_count   Int      @default(0)
+  district       String?
   nid_number     String?
   nid_front_url  String?
   nid_back_url   String?

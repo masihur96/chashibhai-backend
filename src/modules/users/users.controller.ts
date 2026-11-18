@@ -1,76 +1,235 @@
-import { Controller, Get, Patch,Post,Delete, Body, UseGuards, NotFoundException,UseInterceptors, UploadedFile, BadRequestException,Param } from '@nestjs/common';
-import { UsersService } from './users.service';
-import { UpdateProfileDto } from './dto/update-profile.dto';
-import { JwtAuthGuard } from '../auth/jwt-auth.guard'; 
-import { CurrentUser } from '../../common/decorators/current-user.decorator';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Patch,
+  Post,
+  Delete,
+  Body,
+  Param,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
+  UnauthorizedException,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiBearerAuth,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiBody } from '@nestjs/swagger';
-import { SupabaseService } from '../supabase/supabase.service'; // কনস্ট্রাক্টরে ঢোকাতে হবে
-
-import { Roles } from '../../common/decorators/roles.decorator';
+import { UsersService } from './users.service';
+import { SupabaseService } from '../supabase/supabase.service';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { QueryUserDto } from './dto/query-user.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { Role, User } from '@prisma/client';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { Role } from '@prisma/client';
 
-@ApiTags('Users Profile')
-@ApiBearerAuth() // Swagger-এ টোকেন দেওয়ার অপশন চালু করবে
-@UseGuards(JwtAuthGuard) // এই কন্ট্রোলারের সব API টোকেন ছাড়া ব্লক করে দেবে
-@Controller('users/profile')
+@ApiTags('Users')
+@ApiBearerAuth()
+@UseGuards(JwtAuthGuard)
+@Controller('users')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly supabaseService: SupabaseService
+    private readonly supabaseService: SupabaseService,
   ) {}
 
-  private async getDbUser(user: any): Promise<User | null> {
-    let dbUser: User | null = null;
-    const userId = user.supabaseId || user.id || user.sub;
-    if (userId) {
-      dbUser = await this.usersService.findById(userId);
+  private extractUserId(user: any): string {
+    const userId = user?.supabaseId || user?.sub || user?.id;
+    if (!userId) {
+      throw new UnauthorizedException('User ID not found in session token');
     }
-    if (!dbUser && user.phone) {
-      dbUser = await this.usersService.findByPhone(user.phone);
-      if (!dbUser && !user.phone.startsWith('+')) {
-        dbUser = await this.usersService.findByPhone(`+${user.phone}`);
-      }
-      if (!dbUser && user.phone.startsWith('+88')) {
-        dbUser = await this.usersService.findByPhone(user.phone.replace('+88', '0'));
-      }
-    }
-    if (!dbUser && user.email) {
-      dbUser = await this.usersService.findByEmail(user.email);
-    }
-    return dbUser;
+    return userId;
   }
 
-  @Get()
+  // ─── 1. GET /me (Get own profile) ──────────────────────────────────────────
+
+  @Get('me')
   @ApiOperation({ summary: 'Get current logged-in user profile' })
-  @ApiResponse({ status: 200, description: 'Returns the user profile.' })
-  async getProfile(@CurrentUser() user: any) {
-    const dbUser = await this.getDbUser(user);
-    if (!dbUser) {
-      throw new NotFoundException('User profile not found in database');
-    }
-    return dbUser;
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the user profile.',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          id: 'b149b5fa-14f7-4180-a612-8178cbe7754f',
+          name: 'Rafiq Ahmed',
+          phone: '01712345678',
+          role: 'farmer',
+          rating: 4.5,
+          ratingCount: 12,
+          walletBalance: 1200.0,
+          isVerified: true,
+          nidVerified: false,
+          district: 'Bogura',
+          avatarUrl: 'https://cdn.example.com/avatar.jpg',
+        },
+      },
+    },
+  })
+  async getMe(@CurrentUser() user: any) {
+    const userId = this.extractUserId(user);
+    const profile = await this.usersService.getProfile(userId);
+    return {
+      success: true,
+      data: profile,
+    };
   }
 
-  @Patch()
-  @ApiOperation({ summary: 'Update user profile (Name, Avatar)' })
-  @ApiResponse({ status: 200, description: 'Profile updated successfully.' })
-  async updateProfile(
-    @CurrentUser() user: any,
-    @Body() updateData: UpdateProfileDto,
-  ) {
-    const dbUser = await this.getDbUser(user);
-    if (!dbUser) {
-      throw new NotFoundException('User profile not found in database');
-    }
-    return this.usersService.update(dbUser.id, updateData);
+  @Get('profile')
+  @ApiOperation({ summary: 'Alias for /me — Get own profile' })
+  async getProfileAlias(@CurrentUser() user: any) {
+    return this.getMe(user);
   }
+
+  // ─── 2. PATCH /me (Update own profile) ─────────────────────────────────────
+
+  @Patch('me')
+  @ApiOperation({
+    summary: 'Update own profile (Name, Avatar URL or Avatar File, District)',
+  })
+  @ApiConsumes('application/json', 'multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        name: { type: 'string', example: 'Rafiq Ahmed' },
+        avatarUrl: { type: 'string', example: 'https://cdn.example.com/avatar.jpg' },
+        district: { type: 'string', example: 'Bogura' },
+        file: { type: 'string', format: 'binary', description: 'Optional avatar image file' },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Profile updated successfully.',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          id: 'b149b5fa-14f7-4180-a612-8178cbe7754f',
+          name: 'Rafiq Ahmed',
+          phone: '01712345678',
+          role: 'farmer',
+          rating: 4.5,
+          walletBalance: 1200.0,
+          isVerified: true,
+        },
+      },
+    },
+  })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          return cb(
+            new BadRequestException(
+              'Only image files (jpg, jpeg, png, webp) are allowed!',
+            ),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async updateMe(
+    @CurrentUser() user: any,
+    @Body() dto: UpdateProfileDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    const userId = this.extractUserId(user);
+    const updated = await this.usersService.updateProfile(userId, dto, file);
+    return {
+      success: true,
+      data: updated,
+    };
+  }
+
+  @Patch('profile')
+  @ApiOperation({ summary: 'Alias for /me — Update own profile' })
+  async updateProfileAlias(
+    @CurrentUser() user: any,
+    @Body() dto: UpdateProfileDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.updateMe(user, dto, file);
+  }
+
+  // ─── 3. GET /farmers (List all farmers, Role: Buyer) ───────────────────────
+
+  @Get('farmers')
+  @UseGuards(RolesGuard)
+  @Roles(Role.BUYER, Role.ADMIN)
+  @ApiOperation({ summary: 'List all farmers (Buyer role only, paginated with filters)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of farmers.',
+  })
+  async getFarmers(@Query() query: QueryUserDto) {
+    return this.usersService.listUsersByRole('farmer', query);
+  }
+
+  // ─── 4. GET /buyers (List all buyers, Role: Farmer) ─────────────────────────
+
+  @Get('buyers')
+  @UseGuards(RolesGuard)
+  @Roles(Role.FARMER, Role.ADMIN)
+  @ApiOperation({ summary: 'List all buyers (Farmer role only, paginated with filters)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Paginated list of buyers.',
+  })
+  async getBuyers(@Query() query: QueryUserDto) {
+    return this.usersService.listUsersByRole('buyer', query);
+  }
+
+  // ─── 5. GET /:id (Get public profile, Role: Any) ───────────────────────────
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get public profile by ID (name, role, rating, rating_count, avatar_url)' })
+  @ApiParam({ name: 'id', description: 'User UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Public profile details.',
+    schema: {
+      example: {
+        success: true,
+        data: {
+          id: 'uuid',
+          name: 'Rafiq Ahmed',
+          role: 'farmer',
+          rating: 4.5,
+          ratingCount: 10,
+          avatarUrl: 'https://cdn.example.com/avatar.jpg',
+        },
+      },
+    },
+  })
+  async getPublicProfile(@Param('id') id: string) {
+    const profile = await this.usersService.getPublicProfile(id);
+    return {
+      success: true,
+      data: profile,
+    };
+  }
+
+  // ─── Avatar Upload & Delete Endpoints ─────────────────────────────────────
 
   @Post('avatar')
   @ApiOperation({ summary: 'Upload profile avatar' })
-  @ApiConsumes('multipart/form-data') // Swagger-এ ফাইল আপলোডের অপশন দেখানোর জন্য
+  @ApiConsumes('multipart/form-data')
   @ApiBody({
     schema: {
       type: 'object',
@@ -79,55 +238,54 @@ export class UsersController {
       },
     },
   })
-  @UseInterceptors(FileInterceptor('file', {
-    limits: { fileSize: 2 * 1024 * 1024 }, // সর্বোচ্চ 2MB সাইজ
-    fileFilter: (req, file, cb) => {
-      if (!file.mimetype.match(/\/(jpg|jpeg|png)$/)) {
-        return cb(new BadRequestException('Only image files are allowed!'), false);
-      }
-      cb(null, true);
-    },
-  }))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          return cb(
+            new BadRequestException(
+              'Only image files (jpg, jpeg, png, webp) are allowed!',
+            ),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
   async uploadAvatar(
     @CurrentUser() user: any,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) throw new BadRequestException('File is required');
+    const userId = this.extractUserId(user);
 
-    // 1. Supabase-এ ছবি আপলোড করে URL নিয়ে আসা
-    const avatarUrl = await this.supabaseService.uploadAvatar(user.supabaseId || user.phone || user.id, file);
+    const avatarUrl = await this.supabaseService.uploadAvatar(userId, file);
+    await this.usersService.updateProfile(userId, { avatarUrl });
 
-    // 2. ডাটাবেসে ইউজারের প্রোফাইলে URL টি সেভ করা
-    const dbUser = await this.getDbUser(user);
-    if (!dbUser) throw new NotFoundException('User not found');
-    const updatedUser = await this.usersService.update(dbUser.id, { avatar: avatarUrl });
-
-    return { message: 'Avatar uploaded successfully', avatarUrl: updatedUser.avatar };
+    return {
+      success: true,
+      message: 'Avatar uploaded successfully',
+      data: { avatarUrl },
+    };
   }
 
   @Delete('avatar')
   @ApiOperation({ summary: 'Delete profile avatar' })
   async deleteAvatar(@CurrentUser() user: any) {
-    const dbUser = await this.getDbUser(user);
-    if (!dbUser) throw new NotFoundException('User not found');
-    
-    if (dbUser.avatar) {
-      // 1. Supabase Storage থেকে ডিলিট করা
-      await this.supabaseService.deleteAvatar(dbUser.avatar);
-      // 2. ডাটাবেস থেকে লিংক মুছে ফেলা
-      await this.usersService.update(dbUser.id, { avatar: null });
+    const userId = this.extractUserId(user);
+    const profile = await this.usersService.getProfile(userId);
+
+    if (profile?.avatarUrl) {
+      await this.supabaseService.deleteAvatar(profile.avatarUrl);
+      await this.usersService.updateProfile(userId, { avatarUrl: '' });
     }
 
-    return { message: 'Avatar deleted successfully' };
+    return { success: true, message: 'Avatar deleted successfully' };
   }
 
-  @Get('admin-only')
-  @UseGuards(JwtAuthGuard, RolesGuard) // প্রথমে টোকেন চেক করবে, তারপর Role চেক করবে
-  @Roles(Role.ADMIN) // শুধু ADMIN-রাই এটি ব্যবহার করতে পারবে
-  @ApiOperation({ summary: 'Admin Dashboard Data (Testing)' })
-  getAdminData() {
-    return { message: 'Welcome Admin! You have special access.' };
-  }
+  // ─── Verification submission & Admin approval ─────────────────────────────
 
   @Post('verify/submit')
   @ApiOperation({ summary: 'Submit NID for account verification' })
@@ -138,45 +296,55 @@ export class UsersController {
       properties: { file: { type: 'string', format: 'binary' } },
     },
   })
-  @UseInterceptors(FileInterceptor('file', {
-    limits: { fileSize: 5 * 1024 * 1024 }, // সর্বোচ্চ 5MB
-  }))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 },
+    }),
+  )
   async submitVerification(
     @CurrentUser() user: any,
     @UploadedFile() file: Express.Multer.File,
   ) {
     if (!file) throw new BadRequestException('NID Document is required');
+    const userId = this.extractUserId(user);
 
-    // Supabase-এ 'avatars' বাকেটে (বা নতুন 'documents' বাকেটে) ফাইল আপলোড
-    const nidUrl = await this.supabaseService.uploadAvatar(`nid_${user.supabaseId || user.id}`, file);
+    const nidUrl = await this.supabaseService.uploadAvatar(
+      `nid_${userId}`,
+      file,
+    );
 
-    const dbUser = await this.getDbUser(user);
-    if (!dbUser) throw new NotFoundException('User not found');
-    
-    // ইউজারের স্ট্যাটাস PENDING করে দেওয়া
-    await this.usersService.submitVerification(dbUser.id, nidUrl);
+    await this.usersService.submitVerification(userId, nidUrl);
 
-    return { message: 'Verification request submitted successfully. Please wait for admin approval.', nidUrl };
+    return {
+      success: true,
+      message:
+        'Verification request submitted successfully. Please wait for admin approval.',
+      data: { nidUrl },
+    };
   }
 
-  // ==========================================
-  // ২. অ্যাডমিন API: ভেরিফিকেশন অ্যাপ্রুভ/রিজেক্ট করা
-  // ==========================================
   @Patch('verify/approve/:userId')
-  @UseGuards(RolesGuard) // Role চেক করবে
-  @Roles(Role.ADMIN) // শুধুমাত্র ADMIN এই এপিআই কল করতে পারবে
+  @UseGuards(RolesGuard)
+  @Roles(Role.ADMIN)
   @ApiOperation({ summary: 'Admin Only: Approve or reject user verification' })
   async approveVerification(
-    @Param('userId') userId: string,
-    @Body('action') action: 'APPROVE' | 'REJECT', // বডিতে action পাঠাতে হবে
+    @Param('userId') targetUserId: string,
+    @Body('action') action: 'APPROVE' | 'REJECT',
   ) {
     if (action === 'APPROVE') {
-      await this.usersService.updateVerificationStatus(userId, 'APPROVED', true);
-      return { message: 'User verification approved.' };
+      await this.usersService.updateVerificationStatus(
+        targetUserId,
+        'APPROVED',
+        true,
+      );
+      return { success: true, message: 'User verification approved.' };
     } else {
-      await this.usersService.updateVerificationStatus(userId, 'REJECTED', false);
-      return { message: 'User verification rejected.' };
+      await this.usersService.updateVerificationStatus(
+        targetUserId,
+        'REJECTED',
+        false,
+      );
+      return { success: true, message: 'User verification rejected.' };
     }
   }
-
 }
