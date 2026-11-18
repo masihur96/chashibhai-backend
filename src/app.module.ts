@@ -6,18 +6,18 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { PrismaModule } from './prisma/prisma.module';
-import { SupabaseService } from './modules/supabase/supabase.service';
+import { SupabaseModule } from './modules/supabase/supabase.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     LoggerModule.forRoot(),
-    AuthModule, 
-    UsersModule, 
-    PrismaModule
+    SupabaseModule,
+    AuthModule,
+    UsersModule,
+    PrismaModule,
   ],
   controllers: [AppController],
-  providers: [AppService, SupabaseService],
+  providers: [AppService],
 })
-
 export class AppModule {}
