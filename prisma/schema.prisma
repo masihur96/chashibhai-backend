@@ -52,6 +52,7 @@ model Profile {
   role           String   @default("buyer")
   is_verified    Boolean  @default(false)
   nid_verified   Boolean  @default(false)
+  is_banned      Boolean  @default(false)
   wallet_balance Float    @default(0.0)
   avatar_url     String?
   rating         Float    @default(0.0)
@@ -60,8 +61,213 @@ model Profile {
   nid_number     String?
   nid_front_url  String?
   nid_back_url   String?
+  fcm_token      String?
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
   @@map("profiles")
+}
+
+// ৭. Product Model (Module 3 — Products)
+model Product {
+  id            String   @id @default(uuid()) @db.Uuid
+  farmer_id     String   @db.Uuid
+  product_name  String
+  image_url     String?
+  quantity      Decimal  @db.Decimal(10, 2)
+  unit          String?  @default("KG")
+  minimum_price Decimal  @db.Decimal(10, 2)
+  trade_type    String   // 'auction', 'negotiation', 'both'
+  category      String
+  status        String?  @default("active")
+  start_time    DateTime @db.Timestamptz
+  end_time      DateTime @db.Timestamptz
+  created_at    DateTime @default(now()) @db.Timestamptz
+
+  @@map("products")
+}
+
+// ৮. Bid Model (Module 4 — Bids)
+model Bid {
+  id         String   @id @default(uuid()) @db.Uuid
+  product_id String   @db.Uuid
+  buyer_id   String   @db.Uuid
+  amount     Decimal  @db.Decimal(10, 2)
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@unique([product_id, buyer_id], name: "bid_higher")
+  @@map("bids")
+}
+
+// ৯. Negotiation Model (Module 5 — Negotiations)
+model Negotiation {
+  id         String   @id @default(uuid()) @db.Uuid
+  product_id String?  @db.Uuid
+  demand_id  String?  @db.Uuid
+  buyer_id   String   @db.Uuid
+  farmer_id  String   @db.Uuid
+  status     String?  @default("pending") // 'pending', 'accepted', 'rejected', 'countered'
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@map("negotiations")
+}
+
+model NegotiationOffer {
+  id             String   @id @default(uuid()) @db.Uuid
+  negotiation_id String   @db.Uuid
+  sender_id      String   @db.Uuid
+  amount         Decimal  @db.Decimal(10, 2)
+  note           String?
+  created_at     DateTime @default(now()) @db.Timestamptz
+
+  @@map("negotiation_offers")
+}
+
+// ১০. Demand Models (Module 6 — Demands)
+model DemandPost {
+  id                String   @id @default(uuid()) @db.Uuid
+  buyer_id          String   @db.Uuid
+  product_name      String
+  quantity          Decimal  @db.Decimal(10, 2)
+  calling_price     Decimal  @db.Decimal(10, 2)
+  delivery_location String
+  expiry_time       DateTime @db.Timestamptz
+  status            String?  @default("active") // 'active', 'expired', 'fulfilled'
+  trade_type        String   // 'auction', 'negotiation', 'both'
+  image_url         String?
+  created_at        DateTime @default(now()) @db.Timestamptz
+
+  @@map("demand_posts")
+}
+
+model DemandOffer {
+  id          String   @id @default(uuid()) @db.Uuid
+  demand_id   String   @db.Uuid
+  farmer_id   String   @db.Uuid
+  offer_price Decimal  @db.Decimal(10, 2)
+  note        String?
+  created_at  DateTime @default(now()) @db.Timestamptz
+
+  @@map("demand_offers")
+}
+
+// ১১. Order Model (Module 7 — Orders)
+model Order {
+  id          String   @id @default(uuid()) @db.Uuid
+  supply_id   String?  @db.Uuid
+  demand_id   String?  @db.Uuid
+  buyer_id    String   @db.Uuid
+  farmer_id   String   @db.Uuid
+  final_price Decimal  @db.Decimal(10, 2)
+  quantity    Decimal  @db.Decimal(10, 2)
+  commission  Decimal  @db.Decimal(10, 2)
+  status      String?  @default("pending") // 'pending', 'dispatched', 'delivered', 'cancelled'
+  created_at  DateTime @default(now()) @db.Timestamptz
+  updated_at  DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  @@map("orders")
+}
+
+// ১২. Wallet & Escrow Models (Module 8 — Wallet & Escrow)
+model Transaction {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  order_id   String?  @db.Uuid
+  type       String   // 'deposit', 'escrow', 'release', 'withdrawal', 'refund'
+  amount     Decimal  @db.Decimal(12, 2)
+  note       String?
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@map("transactions")
+}
+
+model EscrowLock {
+  id         String   @id @default(uuid()) @db.Uuid
+  order_id   String   @unique @db.Uuid
+  buyer_id   String   @db.Uuid
+  amount     Decimal  @db.Decimal(12, 2)
+  status     String?  @default("locked") // 'locked', 'released', 'refunded'
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@map("escrow_locks")
+}
+
+// ১৩. Group Buy Models (Module 9 — Group Buy)
+model BuyingGroup {
+  id                String   @id @default(uuid()) @db.Uuid
+  name              String
+  product_name      String
+  category          String
+  target_quantity   Decimal  @db.Decimal(10, 2)
+  filled_quantity   Decimal? @default(0) @db.Decimal(10, 2)
+  price_per_kg      Decimal  @db.Decimal(10, 2)
+  delivery_location String
+  created_by        String   @db.Uuid
+  linked_demand_id  String?  @db.Uuid
+  expiry_date       DateTime @db.Timestamptz
+  status            String?  @default("open") // 'open', 'active', 'fulfilled', 'cancelled'
+  created_at        DateTime @default(now()) @db.Timestamptz
+
+  @@map("buying_groups")
+}
+
+model GroupMember {
+  id                    String   @id @default(uuid()) @db.Uuid
+  group_id              String   @db.Uuid
+  user_id               String   @db.Uuid
+  contribution_quantity Decimal  @db.Decimal(10, 2)
+  is_paid               Boolean? @default(false)
+  joined_at             DateTime @default(now()) @db.Timestamptz
+
+  @@unique([group_id, user_id])
+  @@map("group_members")
+}
+
+model GroupMessage {
+  id         String   @id @default(uuid()) @db.Uuid
+  group_id   String   @db.Uuid
+  sender_id  String   @db.Uuid
+  message    String
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@map("group_messages")
+}
+
+// ১৪. Review Model (Module 10 — Reviews)
+model Review {
+  id          String   @id @default(uuid()) @db.Uuid
+  reviewer_id String   @db.Uuid
+  reviewee_id String   @db.Uuid
+  order_id    String?  @db.Uuid
+  rating      Decimal  @db.Decimal(2, 1)
+  comment     String?
+  created_at  DateTime @default(now()) @db.Timestamptz
+
+  @@unique([reviewer_id, order_id])
+  @@map("reviews")
+}
+
+// ১৫. Notification Model (Module 11 — Notifications)
+model Notification {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  title      String
+  message    String
+  type       String   // 'order', 'payment', 'alert', 'promo'
+  is_read    Boolean? @default(false)
+  metadata   Json?    @default("{}")
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@map("notifications")
+}
+
+// ১৬. Token Blacklist Model (Module 12 — Admin)
+model TokenBlacklist {
+  id         String   @id @default(uuid()) @db.Uuid
+  user_id    String   @db.Uuid
+  token      String?
+  reason     String?
+  created_at DateTime @default(now()) @db.Timestamptz
+
+  @@map("jwt_blacklist")
 }
