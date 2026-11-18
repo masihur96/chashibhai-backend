@@ -43,3 +43,22 @@ model User {
 
   @@map("users")
 }
+
+// ৬. Profile Model (Used by Supabase Auth & KYC)
+model Profile {
+  id             String   @id @db.Uuid
+  name           String
+  phone          String?  @unique
+  role           String   @default("buyer")
+  is_verified    Boolean  @default(false)
+  nid_verified   Boolean  @default(false)
+  wallet_balance Float    @default(0.0)
+  avatar_url     String?
+  nid_number     String?
+  nid_front_url  String?
+  nid_back_url   String?
+  created_at     DateTime @default(now())
+  updated_at     DateTime @updatedAt
+
+  @@map("profiles")
+}

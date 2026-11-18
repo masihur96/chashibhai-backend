@@ -1,14 +1,18 @@
-import { IsString, IsOptional, IsEmail } from 'class-validator';
-import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsString, IsNotEmpty, MinLength, Matches } from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
-  @ApiPropertyOptional({ example: '+8801700000000' })
+  @ApiProperty({ example: '01712345678' })
   @IsString()
-  @IsOptional()
-  phone?: string;
+  @IsNotEmpty()
+  @Matches(/^(?:\+88)?01[3-9]\d{8}$/, {
+    message: 'phone must be a valid Bangladeshi mobile number',
+  })
+  phone!: string;
 
-  @ApiPropertyOptional({ example: 'chashibhai2026@gmail.com' })
-  @IsEmail()
-  @IsOptional()
-  email?: string;
+  @ApiProperty({ example: 'SecurePass@123' })
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(8)
+  password!: string;
 }

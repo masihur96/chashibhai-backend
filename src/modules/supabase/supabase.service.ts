@@ -1,61 +1,88 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { extname } from 'path';
-import 'multer';
-
 
 @Injectable()
 export class SupabaseService {
-  private supabase: SupabaseClient;
+  private readonly logger = new Logger(SupabaseService.name);
+  private readonly adminClient: SupabaseClient;
 
   constructor() {
-    // Supabase-এর সাথে কানেকশন তৈরি
-    this.supabase = createClient(
-      process.env.SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    );
+    const url = process.env.SUPABASE_URL;
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!url || !serviceKey) {
+      throw new Error(
+        'SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must be defined',
+      );
+    }
+
+    // Service-role client — full DB + Auth admin access, never exposed to users
+    this.adminClient = createClient(url, serviceKey, {
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
   }
 
-  // ফাইল আপলোড করার ফাংশন
+  /**
+   * Returns the service-role (admin) Supabase client.
+   * Use for server-side operations: auth.admin.*, storage, DB writes.
+   */
+  getAdminClient(): SupabaseClient {
+    return this.adminClient;
+  }
+
+  /**
+   * Returns a user-scoped Supabase client using the caller's access token.
+   * RLS policies will be enforced for this client.
+   */
+  getUserClient(accessToken: string): SupabaseClient {
+    const url = process.env.SUPABASE_URL!;
+    const anonKey = process.env.SUPABASE_ANON_KEY!;
+
+    return createClient(url, anonKey, {
+      global: { headers: { Authorization: `Bearer ${accessToken}` } },
+      auth: { autoRefreshToken: false, persistSession: false },
+    });
+  }
+
+  // ─── Storage helpers ──────────────────────────────────────────────────────────
+
+  /** Upload a user avatar to the 'avatars' bucket; returns the public URL. */
   async uploadAvatar(userId: string, file: Express.Multer.File): Promise<string> {
     try {
-      // ফাইলের নাম ইউনিক করার জন্য ইউজারের আইডি এবং এক্সটেনশন ব্যবহার করা হচ্ছে
       const fileExt = extname(file.originalname);
-      const fileName = `${userId}${fileExt}`;
-      const filePath = `public/${fileName}`;
+      const filePath = `public/${userId}${fileExt}`;
 
-      // Supabase-এ আপলোড করা হচ্ছে
-      const { data, error } = await this.supabase.storage
+      const { error } = await this.adminClient.storage
         .from('avatars')
         .upload(filePath, file.buffer, {
           contentType: file.mimetype,
-          upsert: true, // একই নামে ফাইল থাকলে রিপ্লেস হয়ে যাবে
+          upsert: true,
         });
 
       if (error) throw error;
 
-      // আপলোড শেষে পাবলিক URL রিটার্ন করা হচ্ছে
-      const { data: publicUrlData } = this.supabase.storage
+      const { data } = this.adminClient.storage
         .from('avatars')
         .getPublicUrl(filePath);
 
-      return publicUrlData.publicUrl;
+      return data.publicUrl;
     } catch (error) {
-      throw new InternalServerErrorException('Failed to upload image to Supabase');
+      this.logger.error('Avatar upload failed', error);
+      throw new InternalServerErrorException('Failed to upload avatar');
     }
   }
 
-  // ফাইল ডিলিট করার ফাংশন
-  async deleteAvatar(userId: string, avatarUrl: string): Promise<void> {
+  /** Delete a user avatar from the 'avatars' bucket. */
+  async deleteAvatar(avatarUrl: string): Promise<void> {
     try {
-      // URL থেকে ফাইলের নাম বের করা হচ্ছে
       const fileName = avatarUrl.split('/').pop();
       if (!fileName) return;
-
-      const filePath = `public/${fileName}`;
-      await this.supabase.storage.from('avatars').remove([filePath]);
+      await this.adminClient.storage
+        .from('avatars')
+        .remove([`public/${fileName}`]);
     } catch (error) {
-      console.log('Error deleting avatar from storage', error);
+      this.logger.warn('Error deleting avatar', error);
     }
   }
 }

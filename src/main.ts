@@ -44,6 +44,7 @@ app.use(compression());
 
 
 
+  app.setGlobalPrefix('api/v1');
   app.useLogger(app.get(Logger));
   
   app.useGlobalPipes(

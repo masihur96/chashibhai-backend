@@ -10,7 +10,7 @@ import { SupabaseService } from '../supabase/supabase.service'; // কনস্�
 
 import { Roles } from '../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../common/guards/roles.guard';
-import { Role } from '@prisma/client';
+import { Role, User } from '@prisma/client';
 
 @ApiTags('Users Profile')
 @ApiBearerAuth() // Swagger-এ টোকেন দেওয়ার অপশন চালু করবে
@@ -22,23 +22,35 @@ export class UsersController {
     private readonly supabaseService: SupabaseService
   ) {}
 
+  private async getDbUser(user: any): Promise<User | null> {
+    let dbUser: User | null = null;
+    const userId = user.supabaseId || user.id || user.sub;
+    if (userId) {
+      dbUser = await this.usersService.findById(userId);
+    }
+    if (!dbUser && user.phone) {
+      dbUser = await this.usersService.findByPhone(user.phone);
+      if (!dbUser && !user.phone.startsWith('+')) {
+        dbUser = await this.usersService.findByPhone(`+${user.phone}`);
+      }
+      if (!dbUser && user.phone.startsWith('+88')) {
+        dbUser = await this.usersService.findByPhone(user.phone.replace('+88', '0'));
+      }
+    }
+    if (!dbUser && user.email) {
+      dbUser = await this.usersService.findByEmail(user.email);
+    }
+    return dbUser;
+  }
+
   @Get()
   @ApiOperation({ summary: 'Get current logged-in user profile' })
   @ApiResponse({ status: 200, description: 'Returns the user profile.' })
   async getProfile(@CurrentUser() user: any) {
-    // JWT টোকেন থেকে আমরা ইউজারের phone বা email পাবো। সেটি দিয়ে ডাটাবেস থেকে লেটেস্ট ডেটা আনব।
-    let dbUser;
-    
-    if (user.phone) {
-      dbUser = await this.usersService.findByPhone(user.phone);
-    } else if (user.email) {
-      dbUser = await this.usersService.findByEmail(user.email);
-    }
-
+    const dbUser = await this.getDbUser(user);
     if (!dbUser) {
       throw new NotFoundException('User profile not found in database');
     }
-
     return dbUser;
   }
 
@@ -49,19 +61,10 @@ export class UsersController {
     @CurrentUser() user: any,
     @Body() updateData: UpdateProfileDto,
   ) {
-    // প্রথমে ডাটাবেস থেকে ইউজারের আসল ID বের করে আনতে হবে
-    let dbUser;
-    if (user.phone) {
-      dbUser = await this.usersService.findByPhone(user.phone);
-    } else if (user.email) {
-      dbUser = await this.usersService.findByEmail(user.email);
-    }
-
+    const dbUser = await this.getDbUser(user);
     if (!dbUser) {
       throw new NotFoundException('User profile not found in database');
     }
-
-    // এবার ইউজারের আইডি দিয়ে ডেটা আপডেট করব
     return this.usersService.update(dbUser.id, updateData);
   }
 
@@ -95,8 +98,9 @@ export class UsersController {
     const avatarUrl = await this.supabaseService.uploadAvatar(user.supabaseId || user.phone || user.id, file);
 
     // 2. ডাটাবেসে ইউজারের প্রোফাইলে URL টি সেভ করা
-    const dbUser = await this.usersService.findByPhone(user.phone) || await this.usersService.findByEmail(user.email);
-    const updatedUser = await this.usersService.update(dbUser!.id, { avatar: avatarUrl });
+    const dbUser = await this.getDbUser(user);
+    if (!dbUser) throw new NotFoundException('User not found');
+    const updatedUser = await this.usersService.update(dbUser.id, { avatar: avatarUrl });
 
     return { message: 'Avatar uploaded successfully', avatarUrl: updatedUser.avatar };
   }
@@ -104,13 +108,14 @@ export class UsersController {
   @Delete('avatar')
   @ApiOperation({ summary: 'Delete profile avatar' })
   async deleteAvatar(@CurrentUser() user: any) {
-    const dbUser = await this.usersService.findByPhone(user.phone) || await this.usersService.findByEmail(user.email);
+    const dbUser = await this.getDbUser(user);
+    if (!dbUser) throw new NotFoundException('User not found');
     
-    if (dbUser!.avatar) {
+    if (dbUser.avatar) {
       // 1. Supabase Storage থেকে ডিলিট করা
-      await this.supabaseService.deleteAvatar(user.supabaseId || user.phone || user.id, dbUser!.avatar);
+      await this.supabaseService.deleteAvatar(dbUser.avatar);
       // 2. ডাটাবেস থেকে লিংক মুছে ফেলা
-      await this.usersService.update(dbUser!.id, { avatar: null });
+      await this.usersService.update(dbUser.id, { avatar: null });
     }
 
     return { message: 'Avatar deleted successfully' };
@@ -145,10 +150,11 @@ export class UsersController {
     // Supabase-এ 'avatars' বাকেটে (বা নতুন 'documents' বাকেটে) ফাইল আপলোড
     const nidUrl = await this.supabaseService.uploadAvatar(`nid_${user.supabaseId || user.id}`, file);
 
-    const dbUser = await this.usersService.findByPhone(user.phone) || await this.usersService.findByEmail(user.email);
+    const dbUser = await this.getDbUser(user);
+    if (!dbUser) throw new NotFoundException('User not found');
     
     // ইউজারের স্ট্যাটাস PENDING করে দেওয়া
-    await this.usersService.submitVerification(dbUser!.id, nidUrl);
+    await this.usersService.submitVerification(dbUser.id, nidUrl);
 
     return { message: 'Verification request submitted successfully. Please wait for admin approval.', nidUrl };
   }
