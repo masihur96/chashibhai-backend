@@ -340,11 +340,6 @@ export class ProductsController {
       success: true,
       message: `${urls.length} file(s) uploaded successfully`,
       urls,
-      url: urls[0],
-      data: {
-        urls,
-        url: urls[0],
-      },
     };
   }
 }

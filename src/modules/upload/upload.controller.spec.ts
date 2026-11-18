@@ -57,11 +57,6 @@ describe('UploadController', () => {
         success: true,
         message: '2 file(s) uploaded successfully',
         urls: mockUrls,
-        url: mockUrls[0],
-        data: {
-          urls: mockUrls,
-          url: mockUrls[0],
-        },
       });
       expect(uploadService.uploadFiles).toHaveBeenCalledWith(mockFiles);
     });

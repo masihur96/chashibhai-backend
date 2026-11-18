@@ -59,14 +59,6 @@ export class UploadController {
           'https://xyz.supabase.co/storage/v1/object/public/product-images/products/uuid-1.jpg',
           'https://xyz.supabase.co/storage/v1/object/public/product-images/products/uuid-2.jpg',
         ],
-        url: 'https://xyz.supabase.co/storage/v1/object/public/product-images/products/uuid-1.jpg',
-        data: {
-          urls: [
-            'https://xyz.supabase.co/storage/v1/object/public/product-images/products/uuid-1.jpg',
-            'https://xyz.supabase.co/storage/v1/object/public/product-images/products/uuid-2.jpg',
-          ],
-          url: 'https://xyz.supabase.co/storage/v1/object/public/product-images/products/uuid-1.jpg',
-        },
       },
     },
   })
@@ -95,11 +87,6 @@ export class UploadController {
       success: true,
       message: `${urls.length} file(s) uploaded successfully`,
       urls,
-      url: urls[0],
-      data: {
-        urls,
-        url: urls[0],
-      },
     };
   }
 }

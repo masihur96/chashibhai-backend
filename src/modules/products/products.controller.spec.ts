@@ -318,11 +318,6 @@ describe('ProductsController', () => {
         success: true,
         message: '1 file(s) uploaded successfully',
         urls: mockUrls,
-        url: mockUrls[0],
-        data: {
-          urls: mockUrls,
-          url: mockUrls[0],
-        },
       });
       expect(productsService.uploadFiles).toHaveBeenCalledWith(mockFiles);
     });
