@@ -13,6 +13,7 @@ import { OtpSendDto } from './dto/otp-send.dto';
 import { OtpVerifyDto } from './dto/otp-verify.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { KycDto } from './dto/kyc.dto';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class AuthService {
@@ -21,6 +22,7 @@ export class AuthService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly jwtService: JwtService,
+    private readonly prisma: PrismaService,
   ) {}
 
   // ─── Helpers ────────────────────────────────────────────────────────────────
@@ -126,21 +128,48 @@ export class AuthService {
     const phone = this.normalizePhone(dto.phone);
     const client = this.supabaseService.getAdminClient();
 
-    // Supabase phone+password sign-in
+    let authUser: { id: string; phone?: string; email?: string } | null = null;
+
+    // 1. Try Supabase native signInWithPassword
     const { data, error } = await client.auth.signInWithPassword({
       phone,
       password: dto.password,
     });
 
-    if (error || !data.user) {
-      throw new UnauthorizedException('Invalid phone number or password');
+    if (!error && data?.user) {
+      authUser = data.user;
+    } else {
+      // 2. Fallback: If Phone Provider is disabled in Supabase Cloud or phone unconfirmed,
+      // verify the password directly against auth.users using pgcrypto crypt()
+      const rawDigits = dto.phone.replace(/\D/g, '');
+      const withCountry = rawDigits.startsWith('880') ? rawDigits : `88${rawDigits}`;
+      const withPlus = `+${withCountry}`;
+
+      const users = await this.prisma.$queryRaw<
+        Array<{ id: string; phone: string | null; email: string | null; is_valid: boolean }>
+      >`
+        SELECT id, phone, email, (encrypted_password = crypt(${dto.password}, encrypted_password)) as is_valid
+        FROM auth.users
+        WHERE phone IN (${dto.phone}, ${rawDigits}, ${withCountry}, ${withPlus})
+        LIMIT 1;
+      `;
+
+      if (!users.length || !users[0].is_valid) {
+        throw new UnauthorizedException('Invalid phone number or password');
+      }
+
+      authUser = {
+        id: users[0].id,
+        phone: users[0].phone ?? phone,
+        email: users[0].email ?? '',
+      };
     }
 
     // Fetch profile for role information
     const { data: profile, error: profileError } = await client
       .from('profiles')
       .select('id, name, role, is_verified, nid_verified, wallet_balance, avatar_url')
-      .eq('id', data.user.id)
+      .eq('id', authUser.id)
       .single();
 
     if (profileError || !profile) {
@@ -148,7 +177,7 @@ export class AuthService {
     }
 
     const { accessToken, refreshToken } = this.buildTokens(
-      data.user,
+      authUser,
       profile.role,
     );
 
