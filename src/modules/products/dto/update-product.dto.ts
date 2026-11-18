@@ -9,6 +9,7 @@ import {
   Min,
   MaxLength,
   ValidateIf,
+  IsArray,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
@@ -162,18 +163,22 @@ export class UpdateProductDto {
   image_url?: string;
 
   @ApiPropertyOptional({
-    description: 'Product image file (multipart/form-data upload)',
-    type: 'string',
-    format: 'binary',
+    description: 'List of product image URLs (from upload API)',
+    type: [String],
+    example: ['https://cdn.example.com/products/rice-updated.jpg'],
   })
   @IsOptional()
-  file?: any;
+  @IsArray()
+  @IsString({ each: true })
+  imageUrls?: string[];
 
   @ApiPropertyOptional({
-    description: 'Alias for file (multipart/form-data upload)',
-    type: 'string',
-    format: 'binary',
+    description: 'Alias for imageUrls (snake_case)',
+    type: [String],
+    example: ['https://cdn.example.com/products/rice-updated.jpg'],
   })
   @IsOptional()
-  image?: any;
+  @IsArray()
+  @IsString({ each: true })
+  image_urls?: string[];
 }

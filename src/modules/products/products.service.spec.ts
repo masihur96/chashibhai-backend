@@ -17,6 +17,7 @@ describe('ProductsService', () => {
       getAdminClient: jest.fn(),
       uploadProductImage: jest.fn(),
       deleteProductImage: jest.fn(),
+      uploadFiles: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -469,6 +470,23 @@ describe('ProductsService', () => {
 
       const expiredCount = await service.expireOverdueProducts();
       expect(expiredCount).toBe(2);
+    });
+  });
+
+  describe('uploadFiles', () => {
+    it('should delegate to supabaseService.uploadFiles', async () => {
+      const mockFiles = [{ originalname: 'test.jpg' }] as Express.Multer.File[];
+      const mockUrls = ['https://cdn.example.com/test.jpg'];
+      supabaseMock.uploadFiles.mockResolvedValue(mockUrls);
+
+      const result = await service.uploadFiles(mockFiles);
+
+      expect(result).toEqual(mockUrls);
+      expect(supabaseMock.uploadFiles).toHaveBeenCalledWith(
+        mockFiles,
+        'product-images',
+        'products',
+      );
     });
   });
 });

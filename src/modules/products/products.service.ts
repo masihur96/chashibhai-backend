@@ -26,6 +26,8 @@ export interface FormattedProduct {
   endTime: string;
   imageUrl: string | null;
   image_url?: string | null;
+  imageUrls?: string[];
+  image_urls?: string[];
   createdAt?: string;
   farmer?: {
     id: string;
@@ -48,6 +50,8 @@ export class ProductsService {
    */
   formatProduct(raw: any): FormattedProduct | null {
     if (!raw) return null;
+    const img = raw.image_url ?? null;
+    const imgList = img ? [img] : [];
     return {
       id: raw.id,
       farmerId: raw.farmer_id,
@@ -60,8 +64,10 @@ export class ProductsService {
       status: raw.status ?? 'active',
       startTime: raw.start_time,
       endTime: raw.end_time,
-      imageUrl: raw.image_url ?? null,
-      image_url: raw.image_url ?? null,
+      imageUrl: img,
+      image_url: img,
+      imageUrls: imgList,
+      image_urls: imgList,
       createdAt: raw.created_at,
       farmer: raw.profiles
         ? {
@@ -90,7 +96,16 @@ export class ProductsService {
     const tradeType = dto.tradeType ?? dto.trade_type;
     const startTime = dto.startTime ?? dto.start_time;
     const endTime = dto.endTime ?? dto.end_time;
-    const imageUrl = dto.imageUrl ?? dto.image_url ?? null;
+    const imageUrl =
+      dto.imageUrl ??
+      dto.image_url ??
+      (Array.isArray(dto.imageUrls) && dto.imageUrls.length > 0
+        ? dto.imageUrls[0]
+        : undefined) ??
+      (Array.isArray(dto.image_urls) && dto.image_urls.length > 0
+        ? dto.image_urls[0]
+        : undefined) ??
+      null;
 
     if (!productName) {
       throw new BadRequestException('productName is required');
@@ -426,7 +441,15 @@ export class ProductsService {
       ).toISOString();
     }
 
-    const imageUrl = dto.imageUrl ?? dto.image_url;
+    const imageUrl =
+      dto.imageUrl ??
+      dto.image_url ??
+      (Array.isArray(dto.imageUrls) && dto.imageUrls.length > 0
+        ? dto.imageUrls[0]
+        : undefined) ??
+      (Array.isArray(dto.image_urls) && dto.image_urls.length > 0
+        ? dto.image_urls[0]
+        : undefined);
     if (imageUrl !== undefined) updatePayload.image_url = imageUrl;
 
     // If a new image file is uploaded, upload to Supabase and delete old image
@@ -565,6 +588,13 @@ export class ProductsService {
       imageUrl,
       product: this.formatProduct(updated),
     };
+  }
+
+  /**
+   * Upload multiple image files to Supabase Storage and return their public URLs
+   */
+  async uploadFiles(files: Express.Multer.File[]): Promise<string[]> {
+    return this.supabaseService.uploadFiles(files, 'product-images', 'products');
   }
 
   // ─── 9. Automatic Expiration Cron Job ───────────────────────────────────────

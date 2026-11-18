@@ -20,6 +20,7 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { SupabaseModule } from './modules/supabase/supabase.module';
+import { UploadModule } from './modules/upload/upload.module';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { SupabaseModule } from './modules/supabase/supabase.module';
     ]),
     LoggerModule.forRoot(),
     SupabaseModule,
+    UploadModule,
     AuthModule,
     UsersModule,
     ProductsModule,

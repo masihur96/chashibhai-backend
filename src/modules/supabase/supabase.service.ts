@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { extname } from 'path';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class SupabaseService {
@@ -123,10 +124,12 @@ export class SupabaseService {
     }
   }
 
-  /** Upload a product image to the 'product-images' bucket; returns the public URL. */
-  async uploadProductImage(
-    productId: string,
+  /** Upload a file with custom ID to any Supabase storage bucket; returns the public URL. */
+  async uploadFileWithCustomId(
+    id: string,
     file: Express.Multer.File,
+    bucket: string = 'product-images',
+    folder: string = 'products',
   ): Promise<string> {
     try {
       const ext = extname(file.originalname || '');
@@ -135,12 +138,14 @@ export class SupabaseService {
         'image/jpg': '.jpg',
         'image/png': '.png',
         'image/webp': '.webp',
+        'image/gif': '.gif',
+        'image/svg+xml': '.svg',
       };
       const fileExt = ext || mimeExtMap[file.mimetype] || '.jpg';
-      const filePath = `products/${productId}-${Date.now()}${fileExt}`;
+      const filePath = `${folder}/${id}-${Date.now()}${fileExt}`;
 
       let { error } = await this.adminClient.storage
-        .from('product-images')
+        .from(bucket)
         .upload(filePath, file.buffer, {
           contentType: file.mimetype || 'image/jpeg',
           upsert: true,
@@ -154,35 +159,69 @@ export class SupabaseService {
           (error as any).status === 404)
       ) {
         try {
-          await this.adminClient.storage.createBucket('product-images', {
+          await this.adminClient.storage.createBucket(bucket, {
             public: true,
           });
           const retry = await this.adminClient.storage
-            .from('product-images')
+            .from(bucket)
             .upload(filePath, file.buffer, {
               contentType: file.mimetype || 'image/jpeg',
               upsert: true,
             });
           error = retry.error;
         } catch (bucketErr) {
-          this.logger.warn(
-            'Failed to auto-create product-images bucket',
-            bucketErr,
-          );
+          this.logger.warn(`Failed to auto-create ${bucket} bucket`, bucketErr);
         }
       }
 
       if (error) throw error;
 
       const { data } = this.adminClient.storage
-        .from('product-images')
+        .from(bucket)
         .getPublicUrl(filePath);
 
       return data.publicUrl;
     } catch (error) {
-      this.logger.error('Product image upload failed', error);
-      throw new InternalServerErrorException('Failed to upload product image');
+      this.logger.error(`File upload to ${bucket} failed`, error);
+      throw new InternalServerErrorException('Failed to upload file');
     }
+  }
+
+  /** Upload a single file with auto-generated UUID; returns the public URL. */
+  async uploadSingleFile(
+    file: Express.Multer.File,
+    bucket: string = 'product-images',
+    folder: string = 'products',
+  ): Promise<string> {
+    const fileId = randomUUID();
+    return this.uploadFileWithCustomId(fileId, file, bucket, folder);
+  }
+
+  /** Upload multiple files in parallel to a Supabase storage bucket; returns list of public URLs. */
+  async uploadFiles(
+    files: Express.Multer.File[],
+    bucket: string = 'product-images',
+    folder: string = 'products',
+  ): Promise<string[]> {
+    if (!files || files.length === 0) {
+      return [];
+    }
+    return Promise.all(
+      files.map((file) => this.uploadSingleFile(file, bucket, folder)),
+    );
+  }
+
+  /** Upload a product image to the 'product-images' bucket; returns the public URL. */
+  async uploadProductImage(
+    productId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
+    return this.uploadFileWithCustomId(
+      productId,
+      file,
+      'product-images',
+      'products',
+    );
   }
 
   /** Delete a product image from the 'product-images' bucket. */

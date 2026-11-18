@@ -17,6 +17,7 @@ describe('ProductsController', () => {
       update: jest.fn(),
       remove: jest.fn(),
       uploadImage: jest.fn(),
+      uploadFiles: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -68,7 +69,7 @@ describe('ProductsController', () => {
       expect(productsService.create).toHaveBeenCalledWith('farmer-1', mockDto);
     });
 
-    it('should create and return product when image file is uploaded', async () => {
+    it('should create and return product when imageUrls are provided', async () => {
       const mockDto = {
         productName: 'Boro Rice',
         quantity: 500,
@@ -78,13 +79,8 @@ describe('ProductsController', () => {
         category: 'rice',
         startTime: '2026-11-20T08:00:00Z',
         endTime: '2026-11-25T20:00:00Z',
+        imageUrls: ['https://cdn.example.com/product-images/rice.jpg'],
       };
-
-      const mockFile = {
-        originalname: 'rice.jpg',
-        mimetype: 'image/jpeg',
-        buffer: Buffer.from('rice-bytes'),
-      } as Express.Multer.File;
 
       const mockCreated = {
         id: 'uuid-1',
@@ -93,23 +89,18 @@ describe('ProductsController', () => {
         status: 'active',
         imageUrl: 'https://cdn.example.com/product-images/rice.jpg',
         image_url: 'https://cdn.example.com/product-images/rice.jpg',
+        imageUrls: ['https://cdn.example.com/product-images/rice.jpg'],
       };
 
       (productsService.create as jest.Mock).mockResolvedValue(mockCreated);
 
-      const result = await controller.create({ sub: 'farmer-1' }, mockDto, {
-        file: [mockFile],
-      });
+      const result = await controller.create({ sub: 'farmer-1' }, mockDto);
 
       expect(result).toEqual({
         success: true,
         data: mockCreated,
       });
-      expect(productsService.create).toHaveBeenCalledWith(
-        'farmer-1',
-        mockDto,
-        mockFile,
-      );
+      expect(productsService.create).toHaveBeenCalledWith('farmer-1', mockDto);
     });
   });
 
@@ -306,6 +297,34 @@ describe('ProductsController', () => {
         image_url: 'https://cdn.example.com/product-images/rice.jpg',
       });
       expect(productsService.findOne).toHaveBeenCalledWith('prod-1');
+    });
+  });
+
+  describe('POST /upload', () => {
+    it('should upload files and return list of URLs', async () => {
+      const mockFiles = [
+        {
+          originalname: 'rice.jpg',
+          mimetype: 'image/jpeg',
+          buffer: Buffer.from('img'),
+        } as Express.Multer.File,
+      ];
+      const mockUrls = ['https://cdn.example.com/product-images/rice.jpg'];
+      (productsService.uploadFiles as jest.Mock).mockResolvedValue(mockUrls);
+
+      const result = await controller.uploadImages(mockFiles);
+
+      expect(result).toEqual({
+        success: true,
+        message: '1 file(s) uploaded successfully',
+        urls: mockUrls,
+        url: mockUrls[0],
+        data: {
+          urls: mockUrls,
+          url: mockUrls[0],
+        },
+      });
+      expect(productsService.uploadFiles).toHaveBeenCalledWith(mockFiles);
     });
   });
 });
