@@ -78,7 +78,9 @@ describe('WalletService', () => {
       const chain: any = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
       };
       clientMock.from.mockReturnValue(chain);
 
@@ -314,7 +316,9 @@ describe('WalletService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn().mockResolvedValue({ data: mockLock, error: null }),
+            maybeSingle: jest
+              .fn()
+              .mockResolvedValue({ data: mockLock, error: null }),
             update: jest.fn().mockReturnThis(),
           };
         }
@@ -322,7 +326,9 @@ describe('WalletService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockOrder, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockOrder, error: null }),
           };
         }
         return {};
@@ -347,14 +353,19 @@ describe('WalletService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+            maybeSingle: jest
+              .fn()
+              .mockResolvedValue({ data: null, error: null }),
           };
         }
         if (table === 'orders') {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+            single: jest.fn().mockResolvedValue({
+              data: null,
+              error: { message: 'Not found' },
+            }),
           };
         }
         return {};
@@ -389,7 +400,9 @@ describe('WalletService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn().mockResolvedValue({ data: mockLock, error: null }),
+            maybeSingle: jest
+              .fn()
+              .mockResolvedValue({ data: mockLock, error: null }),
             update: jest.fn().mockReturnThis(),
           };
         }
@@ -397,7 +410,9 @@ describe('WalletService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockOrder, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockOrder, error: null }),
           };
         }
         return {};
@@ -443,7 +458,10 @@ describe('WalletService', () => {
       };
       clientMock.from.mockReturnValue(chain);
 
-      const result = await service.getTransactions('user-1', { page: 1, limit: 10 });
+      const result = await service.getTransactions('user-1', {
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.data).toHaveLength(1);
       expect(result.data[0].id).toBe('trx-1');
@@ -533,14 +551,18 @@ describe('WalletService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockOrder, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockOrder, error: null }),
           };
         }
         if (table === 'escrow_locks') {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn().mockResolvedValue({ data: mockLock, error: null }),
+            maybeSingle: jest
+              .fn()
+              .mockResolvedValue({ data: mockLock, error: null }),
           };
         }
         if (table === 'transactions') {
@@ -553,7 +575,11 @@ describe('WalletService', () => {
         return {};
       });
 
-      const result = await service.getEscrowByOrderId('ord-1', 'buyer-1', 'buyer');
+      const result = await service.getEscrowByOrderId(
+        'ord-1',
+        'buyer-1',
+        'buyer',
+      );
 
       expect(result.orderId).toBe('ord-1');
       expect(result.buyerId).toBe('buyer-1');

@@ -88,7 +88,9 @@ export class ReviewsService {
     const comment = dto.comment?.trim() || null;
 
     if (!revieweeId || !orderId || isNaN(rating)) {
-      throw new BadRequestException('revieweeId, orderId, and rating are required');
+      throw new BadRequestException(
+        'revieweeId, orderId, and rating are required',
+      );
     }
 
     if (rating < 1 || rating > 5) {
@@ -245,10 +247,9 @@ export class ReviewsService {
 
     const { data, count, error } = await client
       .from('reviews')
-      .select(
-        '*, reviewer:reviewer_id(id, name, avatar_url, role)',
-        { count: 'exact' },
-      )
+      .select('*, reviewer:reviewer_id(id, name, avatar_url, role)', {
+        count: 'exact',
+      })
       .eq('reviewee_id', userId)
       .order('created_at', { ascending: false })
       .range(from, to);
@@ -307,7 +308,9 @@ export class ReviewsService {
 
     if (error) {
       this.logger.error(`Failed to fetch reviews for order ${orderId}`, error);
-      throw new InternalServerErrorException('Failed to retrieve order reviews');
+      throw new InternalServerErrorException(
+        'Failed to retrieve order reviews',
+      );
     }
 
     return (data || []).map((row) => this.formatReview(row));

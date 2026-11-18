@@ -65,7 +65,9 @@ describe('UsersService', () => {
 
       const selectMock = jest.fn().mockReturnThis();
       const eqMock = jest.fn().mockReturnThis();
-      const singleMock = jest.fn().mockResolvedValue({ data: mockProfile, error: null });
+      const singleMock = jest
+        .fn()
+        .mockResolvedValue({ data: mockProfile, error: null });
 
       supabaseMock.getAdminClient.mockReturnValue({
         from: jest.fn().mockReturnValue({
@@ -90,13 +92,17 @@ describe('UsersService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
         }),
       });
 
       prismaMock.user.findUnique.mockResolvedValue(null);
 
-      await expect(service.getProfile('non-existent')).rejects.toThrow(NotFoundException);
+      await expect(service.getProfile('non-existent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -115,7 +121,9 @@ describe('UsersService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: mockPublicData, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: mockPublicData, error: null }),
         }),
       });
 
@@ -150,7 +158,9 @@ describe('UsersService', () => {
           update: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
           select: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: updatedProfile, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: updatedProfile, error: null }),
         }),
       });
 

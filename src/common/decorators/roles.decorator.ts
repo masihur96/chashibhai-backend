@@ -4,4 +4,5 @@ import { Role } from '@prisma/client'; // Prisma থেকে Role Enum টি �
 export const ROLES_KEY = 'roles';
 
 // এই ডেকোরেটরের মাধ্যমে আমরা বলে দেব কোন কোন Role অ্যালাউড
-export const Roles = (...roles: (Role | string)[]) => SetMetadata(ROLES_KEY, roles);
+export const Roles = (...roles: (Role | string)[]) =>
+  SetMetadata(ROLES_KEY, roles);

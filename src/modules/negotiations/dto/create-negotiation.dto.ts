@@ -11,7 +11,8 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateNegotiationDto {
   @ApiPropertyOptional({
-    description: 'Product UUID (if buyer is initiating negotiation on a product)',
+    description:
+      'Product UUID (if buyer is initiating negotiation on a product)',
     example: 'c194b6fa-14f7-4180-a612-8178cbe7754f',
   })
   @IsOptional()
@@ -27,7 +28,8 @@ export class CreateNegotiationDto {
   product_id?: string;
 
   @ApiPropertyOptional({
-    description: 'Demand post UUID (if farmer is initiating negotiation on a demand post)',
+    description:
+      'Demand post UUID (if farmer is initiating negotiation on a demand post)',
     example: 'd294b6fa-14f7-4180-a612-8178cbe7754f',
   })
   @IsOptional()

@@ -8,6 +8,7 @@ import {
   IsPositive,
   Min,
   MaxLength,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
@@ -145,6 +146,7 @@ export class UpdateProductDto {
     example: 'https://cdn.example.com/products/rice-updated.jpg',
   })
   @IsOptional()
+  @ValidateIf((o: UpdateProductDto) => !!o.imageUrl)
   @IsString()
   @IsUrl()
   imageUrl?: string;
@@ -154,7 +156,24 @@ export class UpdateProductDto {
     example: 'https://cdn.example.com/products/rice-updated.jpg',
   })
   @IsOptional()
+  @ValidateIf((o: UpdateProductDto) => !!o.image_url)
   @IsString()
   @IsUrl()
   image_url?: string;
+
+  @ApiPropertyOptional({
+    description: 'Product image file (multipart/form-data upload)',
+    type: 'string',
+    format: 'binary',
+  })
+  @IsOptional()
+  file?: any;
+
+  @ApiPropertyOptional({
+    description: 'Alias for file (multipart/form-data upload)',
+    type: 'string',
+    format: 'binary',
+  })
+  @IsOptional()
+  image?: any;
 }

@@ -57,7 +57,11 @@ describe('DemandsController', () => {
         success: true,
         data: mockResult,
       });
-      expect(demandsService.create).toHaveBeenCalledWith('buyer-1', mockDto, undefined);
+      expect(demandsService.create).toHaveBeenCalledWith(
+        'buyer-1',
+        mockDto,
+        undefined,
+      );
     });
   });
 
@@ -76,7 +80,10 @@ describe('DemandsController', () => {
         success: true,
         ...mockList,
       });
-      expect(demandsService.findAll).toHaveBeenCalledWith({ page: 1, limit: 10 });
+      expect(demandsService.findAll).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+      });
     });
   });
 
@@ -89,13 +96,19 @@ describe('DemandsController', () => {
 
       (demandsService.findMyDemands as jest.Mock).mockResolvedValue(mockList);
 
-      const result = await controller.getMyDemands({ sub: 'buyer-1' }, { page: 1, limit: 10 });
+      const result = await controller.getMyDemands(
+        { sub: 'buyer-1' },
+        { page: 1, limit: 10 },
+      );
 
       expect(result).toEqual({
         success: true,
         ...mockList,
       });
-      expect(demandsService.findMyDemands).toHaveBeenCalledWith('buyer-1', { page: 1, limit: 10 });
+      expect(demandsService.findMyDemands).toHaveBeenCalledWith('buyer-1', {
+        page: 1,
+        limit: 10,
+      });
     });
   });
 
@@ -143,10 +156,17 @@ describe('DemandsController', () => {
       const mockDeleteResult = { success: true, message: 'Deleted' };
       (demandsService.remove as jest.Mock).mockResolvedValue(mockDeleteResult);
 
-      const result = await controller.remove('dem-1', { sub: 'buyer-1', role: 'buyer' });
+      const result = await controller.remove('dem-1', {
+        sub: 'buyer-1',
+        role: 'buyer',
+      });
 
       expect(result).toEqual(mockDeleteResult);
-      expect(demandsService.remove).toHaveBeenCalledWith('dem-1', 'buyer-1', 'buyer');
+      expect(demandsService.remove).toHaveBeenCalledWith(
+        'dem-1',
+        'buyer-1',
+        'buyer',
+      );
     });
   });
 
@@ -165,9 +185,13 @@ describe('DemandsController', () => {
         success: true,
         data: mockOffer,
       });
-      expect(demandsService.createOffer).toHaveBeenCalledWith('dem-1', 'farmer-1', {
-        offerPrice: 27.5,
-      });
+      expect(demandsService.createOffer).toHaveBeenCalledWith(
+        'dem-1',
+        'farmer-1',
+        {
+          offerPrice: 27.5,
+        },
+      );
     });
   });
 
@@ -176,20 +200,33 @@ describe('DemandsController', () => {
       const mockOffers = [{ id: 'off-1', offerPrice: 27.5 }];
       (demandsService.getOffers as jest.Mock).mockResolvedValue(mockOffers);
 
-      const result = await controller.getOffers('dem-1', { sub: 'buyer-1', role: 'buyer' });
+      const result = await controller.getOffers('dem-1', {
+        sub: 'buyer-1',
+        role: 'buyer',
+      });
 
       expect(result).toEqual({
         success: true,
         data: mockOffers,
       });
-      expect(demandsService.getOffers).toHaveBeenCalledWith('dem-1', 'buyer-1', 'buyer');
+      expect(demandsService.getOffers).toHaveBeenCalledWith(
+        'dem-1',
+        'buyer-1',
+        'buyer',
+      );
     });
   });
 
   describe('POST /:id/offers/:offerId/accept', () => {
     it('should accept offer and create order', async () => {
-      const mockAcceptResult = { success: true, message: 'Order created', data: {} };
-      (demandsService.acceptOffer as jest.Mock).mockResolvedValue(mockAcceptResult);
+      const mockAcceptResult = {
+        success: true,
+        message: 'Order created',
+        data: {},
+      };
+      (demandsService.acceptOffer as jest.Mock).mockResolvedValue(
+        mockAcceptResult,
+      );
 
       const result = await controller.acceptOffer('dem-1', 'off-1', {
         sub: 'buyer-1',
@@ -197,7 +234,12 @@ describe('DemandsController', () => {
       });
 
       expect(result).toEqual(mockAcceptResult);
-      expect(demandsService.acceptOffer).toHaveBeenCalledWith('dem-1', 'off-1', 'buyer-1', 'buyer');
+      expect(demandsService.acceptOffer).toHaveBeenCalledWith(
+        'dem-1',
+        'off-1',
+        'buyer-1',
+        'buyer',
+      );
     });
   });
 });

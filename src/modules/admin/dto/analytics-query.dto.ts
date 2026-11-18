@@ -21,7 +21,10 @@ export class AnalyticsQueryDto {
 }
 
 export class TopUsersQueryDto {
-  @ApiPropertyOptional({ description: 'Number of top records to return', default: 10 })
+  @ApiPropertyOptional({
+    description: 'Number of top records to return',
+    default: 10,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()

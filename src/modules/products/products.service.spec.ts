@@ -1,7 +1,11 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsService } from './products.service';
 import { SupabaseService } from '../supabase/supabase.service';
-import { NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  ForbiddenException,
+  BadRequestException,
+} from '@nestjs/common';
 import { TradeType } from './dto/create-product.dto';
 
 describe('ProductsService', () => {
@@ -54,7 +58,9 @@ describe('ProductsService', () => {
         from: jest.fn().mockReturnValue({
           insert: jest.fn().mockReturnThis(),
           select: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: mockProduct, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: mockProduct, error: null }),
         }),
       });
 
@@ -91,6 +97,141 @@ describe('ProductsService', () => {
           endTime: '2026-11-20T08:00:00Z',
         }),
       ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should upload image to Supabase and update product image_url when file is provided', async () => {
+      const mockProduct = {
+        id: 'prod-123',
+        farmer_id: 'farmer-uuid',
+        product_name: 'Boro Rice',
+        quantity: 500,
+        unit: 'KG',
+        minimum_price: 45.0,
+        trade_type: 'both',
+        category: 'rice',
+        status: 'active',
+        start_time: '2026-11-20T08:00:00.000Z',
+        end_time: '2026-11-25T20:00:00.000Z',
+        image_url: null,
+        created_at: '2026-11-18T10:00:00.000Z',
+      };
+
+      const mockUpdated = {
+        ...mockProduct,
+        image_url: 'https://cdn.example.com/product-images/rice.jpg',
+      };
+
+      const mockFile = {
+        originalname: 'rice.jpg',
+        mimetype: 'image/jpeg',
+        buffer: Buffer.from('rice-bytes'),
+      } as Express.Multer.File;
+
+      supabaseMock.uploadProductImage.mockResolvedValue(
+        'https://cdn.example.com/product-images/rice.jpg',
+      );
+
+      const fromMock = jest.fn();
+      // First call: insert
+      fromMock.mockReturnValueOnce({
+        insert: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({ data: mockProduct, error: null }),
+      });
+      // Second call: update
+      fromMock.mockReturnValueOnce({
+        update: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({ data: mockUpdated, error: null }),
+      });
+
+      supabaseMock.getAdminClient.mockReturnValue({ from: fromMock });
+
+      const result = await service.create(
+        'farmer-uuid',
+        {
+          productName: 'Boro Rice',
+          quantity: 500,
+          unit: 'KG',
+          minimumPrice: 45.0,
+          tradeType: TradeType.BOTH,
+          category: 'rice',
+          startTime: '2026-11-20T08:00:00Z',
+          endTime: '2026-11-25T20:00:00Z',
+        },
+        mockFile,
+      );
+
+      expect(supabaseMock.uploadProductImage).toHaveBeenCalledWith(
+        'prod-123',
+        mockFile,
+      );
+      expect(result.imageUrl).toBe(
+        'https://cdn.example.com/product-images/rice.jpg',
+      );
+      expect(result.image_url).toBe(
+        'https://cdn.example.com/product-images/rice.jpg',
+      );
+    });
+
+    it('should rollback and delete product if file upload fails', async () => {
+      const mockProduct = {
+        id: 'prod-fail',
+        farmer_id: 'farmer-uuid',
+        product_name: 'Boro Rice',
+        quantity: 500,
+        unit: 'KG',
+        minimum_price: 45.0,
+        trade_type: 'both',
+        category: 'rice',
+        status: 'active',
+        start_time: '2026-11-20T08:00:00.000Z',
+        end_time: '2026-11-25T20:00:00.000Z',
+        image_url: null,
+      };
+
+      const mockFile = {
+        originalname: 'rice.jpg',
+        mimetype: 'image/jpeg',
+        buffer: Buffer.from('rice-bytes'),
+      } as Express.Multer.File;
+
+      supabaseMock.uploadProductImage.mockRejectedValue(
+        new Error('Storage upload error'),
+      );
+
+      const fromMock = jest.fn();
+      // First call: insert
+      fromMock.mockReturnValueOnce({
+        insert: jest.fn().mockReturnThis(),
+        select: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({ data: mockProduct, error: null }),
+      });
+      // Second call: delete (rollback)
+      fromMock.mockReturnValueOnce({
+        delete: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockResolvedValue({ error: null }),
+      });
+
+      supabaseMock.getAdminClient.mockReturnValue({ from: fromMock });
+
+      await expect(
+        service.create(
+          'farmer-uuid',
+          {
+            productName: 'Boro Rice',
+            quantity: 500,
+            unit: 'KG',
+            minimumPrice: 45.0,
+            tradeType: TradeType.BOTH,
+            category: 'rice',
+            startTime: '2026-11-20T08:00:00Z',
+            endTime: '2026-11-25T20:00:00Z',
+          },
+          mockFile,
+        ),
+      ).rejects.toThrow();
     });
   });
 
@@ -160,7 +301,9 @@ describe('ProductsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: mockProduct, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: mockProduct, error: null }),
         }),
       });
 
@@ -174,11 +317,15 @@ describe('ProductsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
         }),
       });
 
-      await expect(service.findOne('invalid-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -204,13 +351,17 @@ describe('ProductsService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: existingProduct, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: existingProduct, error: null }),
       });
       fromMock.mockReturnValueOnce({
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: updatedProduct, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: updatedProduct, error: null }),
       });
 
       supabaseMock.getAdminClient.mockReturnValue({ from: fromMock });
@@ -234,7 +385,9 @@ describe('ProductsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: existingProduct, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: existingProduct, error: null }),
         }),
       });
 
@@ -256,7 +409,9 @@ describe('ProductsService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: existingProduct, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: existingProduct, error: null }),
       });
       fromMock.mockReturnValueOnce({
         delete: jest.fn().mockReturnThis(),
@@ -286,7 +441,9 @@ describe('ProductsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: existingProduct, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: existingProduct, error: null }),
         }),
       });
 

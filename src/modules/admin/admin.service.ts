@@ -133,7 +133,9 @@ export class AdminService {
 
     if (filter?.search) {
       const s = filter.search;
-      query = query.or(`name.ilike.%${s}%,phone.ilike.%${s}%,district.ilike.%${s}%`);
+      query = query.or(
+        `name.ilike.%${s}%,phone.ilike.%${s}%,district.ilike.%${s}%`,
+      );
     }
 
     const sortBy = filter?.sortBy || 'created_at';
@@ -212,8 +214,13 @@ export class AdminService {
       .single();
 
     if (updateErr || !updated) {
-      this.logger.error(`Failed to update verification for ${userId}`, updateErr);
-      throw new InternalServerErrorException('Failed to update verification status');
+      this.logger.error(
+        `Failed to update verification for ${userId}`,
+        updateErr,
+      );
+      throw new InternalServerErrorException(
+        'Failed to update verification status',
+      );
     }
 
     // Send notification to user
@@ -274,7 +281,9 @@ export class AdminService {
 
     if (updateErr || !updated) {
       this.logger.error(`Failed to update ban status for ${userId}`, updateErr);
-      throw new InternalServerErrorException('Failed to update user ban status');
+      throw new InternalServerErrorException(
+        'Failed to update user ban status',
+      );
     }
 
     // Invalidate JWT tokens via blacklist record
@@ -286,7 +295,9 @@ export class AdminService {
           created_at: new Date().toISOString(),
         });
       } catch (e: any) {
-        this.logger.warn(`Could not add user to jwt_blacklist table: ${e.message}`);
+        this.logger.warn(
+          `Could not add user to jwt_blacklist table: ${e.message}`,
+        );
       }
 
       await this.notificationsService.sendNotification(
@@ -419,10 +430,12 @@ export class AdminService {
   async getOrders(filter?: AdminOrderFilterDto) {
     const client = this.supabaseService.getAdminClient();
 
-    let query = client.from('orders').select(
-      '*, buyer:buyer_id(id, name, phone), farmer:farmer_id(id, name, phone)',
-      { count: 'exact' },
-    );
+    let query = client
+      .from('orders')
+      .select(
+        '*, buyer:buyer_id(id, name, phone), farmer:farmer_id(id, name, phone)',
+        { count: 'exact' },
+      );
 
     if (filter?.status && filter.status !== 'all') {
       query = query.eq('status', filter.status.toLowerCase());
@@ -509,7 +522,10 @@ export class AdminService {
       .single();
 
     if (updateErr) {
-      this.logger.error(`Failed to override order status for ${orderId}`, updateErr);
+      this.logger.error(
+        `Failed to override order status for ${orderId}`,
+        updateErr,
+      );
       throw new InternalServerErrorException('Failed to update order status');
     }
 
@@ -518,13 +534,17 @@ export class AdminService {
       try {
         await this.walletService.releaseEscrow(orderId);
       } catch (e: any) {
-        this.logger.warn(`Could not auto-release escrow for order ${orderId}: ${e.message}`);
+        this.logger.warn(
+          `Could not auto-release escrow for order ${orderId}: ${e.message}`,
+        );
       }
     } else if (newStatus === 'cancelled' && previousStatus !== 'cancelled') {
       try {
         await this.walletService.refundEscrow(orderId);
       } catch (e: any) {
-        this.logger.warn(`Could not auto-refund escrow for order ${orderId}: ${e.message}`);
+        this.logger.warn(
+          `Could not auto-refund escrow for order ${orderId}: ${e.message}`,
+        );
       }
     }
 
@@ -657,7 +677,9 @@ export class AdminService {
 
     const { data: deliveredOrders, error } = await client
       .from('orders')
-      .select('farmer_id, final_price, quantity, farmer:farmer_id(id, name, phone, district, rating)')
+      .select(
+        'farmer_id, final_price, quantity, farmer:farmer_id(id, name, phone, district, rating)',
+      )
       .eq('status', 'delivered');
 
     if (error) {
@@ -711,7 +733,9 @@ export class AdminService {
 
     const { data: deliveredOrders, error } = await client
       .from('orders')
-      .select('buyer_id, final_price, quantity, buyer:buyer_id(id, name, phone, district)')
+      .select(
+        'buyer_id, final_price, quantity, buyer:buyer_id(id, name, phone, district)',
+      )
       .eq('status', 'delivered');
 
     if (error) {
@@ -768,7 +792,9 @@ export class AdminService {
 
     if (error) {
       this.logger.error('Failed to generate transaction report', error);
-      throw new InternalServerErrorException('Failed to export transactions CSV');
+      throw new InternalServerErrorException(
+        'Failed to export transactions CSV',
+      );
     }
 
     const columns: CsvColumn[] = [

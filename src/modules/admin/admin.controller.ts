@@ -64,7 +64,9 @@ export class AdminController {
   // ─── 2. GET /users (List all users with filters) ────────────────────────────
 
   @Get('users')
-  @ApiOperation({ summary: 'List all users with filters, sorting, and pagination' })
+  @ApiOperation({
+    summary: 'List all users with filters, sorting, and pagination',
+  })
   @ApiResponse({ status: HttpStatus.OK, description: 'Paginated users list.' })
   async getUsers(@Query() filter: UserFilterDto) {
     const result = await this.adminService.getUsers(filter);
@@ -82,10 +84,7 @@ export class AdminController {
   @ApiOperation({ summary: 'Verify or unverify a user NID identity' })
   @ApiParam({ name: 'id', description: 'User UUID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'User verified.' })
-  async verifyUser(
-    @Param('id') id: string,
-    @Body() dto: VerifyUserDto,
-  ) {
+  async verifyUser(@Param('id') id: string, @Body() dto: VerifyUserDto) {
     return this.adminService.verifyUser(id, dto);
   }
 
@@ -95,11 +94,11 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Ban or unban a user and invalidate token' })
   @ApiParam({ name: 'id', description: 'User UUID' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'User ban status updated.' })
-  async banUser(
-    @Param('id') id: string,
-    @Body() dto: BanUserDto,
-  ) {
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'User ban status updated.',
+  })
+  async banUser(@Param('id') id: string, @Body() dto: BanUserDto) {
     return this.adminService.banUser(id, dto);
   }
 
@@ -107,7 +106,10 @@ export class AdminController {
 
   @Get('products')
   @ApiOperation({ summary: 'List all products across all statuses' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Paginated products list.' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Paginated products list.',
+  })
   async getProducts(@Query() filter: AdminProductFilterDto) {
     const result = await this.adminService.getProducts(filter);
     return {
@@ -123,7 +125,10 @@ export class AdminController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Admin override of product status' })
   @ApiParam({ name: 'id', description: 'Product UUID' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Product status changed.' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Product status changed.',
+  })
   async updateProductStatus(
     @Param('id') id: string,
     @Body() dto: UpdateProductStatusDto,
@@ -149,7 +154,9 @@ export class AdminController {
 
   @Patch('orders/:id/status')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Override order status with financial side effects' })
+  @ApiOperation({
+    summary: 'Override order status with financial side effects',
+  })
   @ApiParam({ name: 'id', description: 'Order UUID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Order status updated.' })
   async updateOrderStatus(
@@ -163,7 +170,10 @@ export class AdminController {
 
   @Get('wallet/escrow')
   @ApiOperation({ summary: 'List all active escrow locks currently in system' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Active escrow locks list.' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Active escrow locks list.',
+  })
   async getActiveEscrow() {
     const locks = await this.adminService.getActiveEscrowLocks();
     return {
@@ -176,7 +186,9 @@ export class AdminController {
 
   @Post('wallet/escrow/:orderId/release')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Force release escrow funds to farmer for an order' })
+  @ApiOperation({
+    summary: 'Force release escrow funds to farmer for an order',
+  })
   @ApiParam({ name: 'orderId', description: 'Order UUID' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Escrow released.' })
   async forceReleaseEscrow(@Param('orderId') orderId: string) {
@@ -230,7 +242,10 @@ export class AdminController {
 
   @Get('reports/transactions')
   @Header('Content-Type', 'text/csv')
-  @Header('Content-Disposition', 'attachment; filename="transactions-report.csv"')
+  @Header(
+    'Content-Disposition',
+    'attachment; filename="transactions-report.csv"',
+  )
   @ApiOperation({ summary: 'Export complete transaction history as CSV' })
   @ApiResponse({
     status: HttpStatus.OK,

@@ -71,39 +71,40 @@ export class AuthService {
       throw new InternalServerErrorException('Registration failed');
     }
 
-    const userId = authData.user!.id;
+    const userId = authData.user.id;
 
     // 2. Insert extended profile row
-    const { error: profileError } = await client
-      .from('profiles')
-      .insert({
-        id: userId,
-        name: dto.name,
-        phone,
-        role: dto.role.toLowerCase(),
-      });
+    const { error: profileError } = await client.from('profiles').insert({
+      id: userId,
+      name: dto.name,
+      phone,
+      role: dto.role.toLowerCase(),
+    });
 
     if (profileError) {
       // Rollback: delete the auth user so the data stays consistent
       await client.auth.admin.deleteUser(userId);
-      this.logger.error('Profile insert error: ' + JSON.stringify(profileError));
+      this.logger.error(
+        'Profile insert error: ' + JSON.stringify(profileError),
+      );
       throw new InternalServerErrorException('Failed to create user profile');
     }
 
     // Sync to users table for Prisma compatibility
-    await client
-      .from('users')
-      .upsert({
+    await client.from('users').upsert(
+      {
         id: userId,
         name: dto.name,
         phone,
         role: dto.role,
         status: 'PENDING',
-      }, { onConflict: 'id' });
+      },
+      { onConflict: 'id' },
+    );
 
     // 3. Issue tokens
     const { accessToken, refreshToken } = this.buildTokens(
-      authData.user!,
+      authData.user,
       dto.role,
     );
 
@@ -142,11 +143,18 @@ export class AuthService {
       // 2. Fallback: If Phone Provider is disabled in Supabase Cloud or phone unconfirmed,
       // verify the password directly against auth.users using pgcrypto crypt()
       const rawDigits = dto.phone.replace(/\D/g, '');
-      const withCountry = rawDigits.startsWith('880') ? rawDigits : `88${rawDigits}`;
+      const withCountry = rawDigits.startsWith('880')
+        ? rawDigits
+        : `88${rawDigits}`;
       const withPlus = `+${withCountry}`;
 
       const users = await this.prisma.$queryRaw<
-        Array<{ id: string; phone: string | null; email: string | null; is_valid: boolean }>
+        Array<{
+          id: string;
+          phone: string | null;
+          email: string | null;
+          is_valid: boolean;
+        }>
       >`
         SELECT id, phone, email, (encrypted_password = crypt(${dto.password}, encrypted_password)) as is_valid
         FROM auth.users
@@ -168,7 +176,9 @@ export class AuthService {
     // Fetch profile for role information
     const { data: profile, error: profileError } = await client
       .from('profiles')
-      .select('id, name, role, is_verified, nid_verified, wallet_balance, avatar_url')
+      .select(
+        'id, name, role, is_verified, nid_verified, wallet_balance, avatar_url',
+      )
       .eq('id', authUser.id)
       .single();
 
@@ -284,7 +294,9 @@ export class AuthService {
       });
     if (frontError) {
       this.logger.error('KYC front upload error', frontError);
-      throw new InternalServerErrorException('Failed to upload NID front image');
+      throw new InternalServerErrorException(
+        'Failed to upload NID front image',
+      );
     }
 
     // Upload NID back
@@ -301,10 +313,10 @@ export class AuthService {
     }
 
     // Build signed/public URLs
-    const frontUrl = client.storage.from(bucket).getPublicUrl(frontPath).data
-      .publicUrl;
-    const backUrl = client.storage.from(bucket).getPublicUrl(backPath).data
-      .publicUrl;
+    const frontUrl = client.storage.from(bucket).getPublicUrl(frontPath)
+      .data.publicUrl;
+    const backUrl = client.storage.from(bucket).getPublicUrl(backPath)
+      .data.publicUrl;
 
     // Persist in profiles table
     const { error: updateError } = await client

@@ -125,7 +125,11 @@ describe('WalletController', () => {
 
   describe('GET /transactions', () => {
     it('should return paginated transaction history', async () => {
-      const query: QueryTransactionDto = { page: 1, limit: 10, type: 'deposit' };
+      const query: QueryTransactionDto = {
+        page: 1,
+        limit: 10,
+        type: 'deposit',
+      };
       const mockResult = {
         data: [
           {
@@ -146,7 +150,9 @@ describe('WalletController', () => {
         },
       };
 
-      (walletService.getTransactions as jest.Mock).mockResolvedValue(mockResult);
+      (walletService.getTransactions as jest.Mock).mockResolvedValue(
+        mockResult,
+      );
 
       const result = await controller.getTransactions({ sub: 'user-1' }, query);
 
@@ -155,7 +161,10 @@ describe('WalletController', () => {
         data: mockResult.data,
         meta: mockResult.meta,
       });
-      expect(walletService.getTransactions).toHaveBeenCalledWith('user-1', query);
+      expect(walletService.getTransactions).toHaveBeenCalledWith(
+        'user-1',
+        query,
+      );
     });
   });
 

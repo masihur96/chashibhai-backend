@@ -1,4 +1,7 @@
-import { HttpExceptionFilter, GlobalExceptionFilter } from './http-exception.filter';
+import {
+  HttpExceptionFilter,
+  GlobalExceptionFilter,
+} from './http-exception.filter';
 import { ArgumentsHost, HttpException, HttpStatus } from '@nestjs/common';
 
 describe('HttpExceptionFilter', () => {
@@ -34,7 +37,10 @@ describe('HttpExceptionFilter', () => {
       }),
     } as unknown as ArgumentsHost;
 
-    const exception = new HttpException('Resource not found', HttpStatus.NOT_FOUND);
+    const exception = new HttpException(
+      'Resource not found',
+      HttpStatus.NOT_FOUND,
+    );
 
     filter.catch(exception, mockHost);
 

@@ -83,7 +83,9 @@ describe('ReviewsService', () => {
       clientMock.from.mockReturnValue({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
       });
 
       await expect(service.create('user-1', dto)).rejects.toThrow(
@@ -185,7 +187,9 @@ describe('ReviewsService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockOrder, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockOrder, error: null }),
           };
         }
         if (table === 'reviews') {
@@ -237,16 +241,22 @@ describe('ReviewsService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockOrder, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockOrder, error: null }),
           };
         }
         if (table === 'reviews') {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+            maybeSingle: jest
+              .fn()
+              .mockResolvedValue({ data: null, error: null }),
             insert: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockInsertedReview, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockInsertedReview, error: null }),
           };
         }
         return {};
@@ -303,16 +313,22 @@ describe('ReviewsService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockOrder, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockOrder, error: null }),
           };
         }
         if (table === 'reviews') {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+            maybeSingle: jest
+              .fn()
+              .mockResolvedValue({ data: null, error: null }),
             insert: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockInsertedReview, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockInsertedReview, error: null }),
           };
         }
         if (table === 'profiles') {
@@ -342,7 +358,9 @@ describe('ReviewsService', () => {
       clientMock.from.mockReturnValue({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
       });
 
       await expect(service.findByUser('missing-id')).rejects.toThrow(
@@ -375,7 +393,9 @@ describe('ReviewsService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockProfile, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockProfile, error: null }),
           };
         }
         if (table === 'reviews') {
@@ -409,7 +429,9 @@ describe('ReviewsService', () => {
       clientMock.from.mockReturnValue({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
       });
 
       await expect(service.findByOrder('missing-order')).rejects.toThrow(
@@ -432,14 +454,18 @@ describe('ReviewsService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockOrder, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockOrder, error: null }),
           };
         }
         if (table === 'reviews') {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            order: jest.fn().mockResolvedValue({ data: mockReviews, error: null }),
+            order: jest
+              .fn()
+              .mockResolvedValue({ data: mockReviews, error: null }),
           };
         }
         return {};

@@ -82,7 +82,9 @@ export class UsersService {
       .single();
 
     if (error || !profile) {
-      this.logger.warn(`Profile not found in Supabase for user ${userId}: ${error?.message}`);
+      this.logger.warn(
+        `Profile not found in Supabase for user ${userId}: ${error?.message}`,
+      );
 
       // Fallback check in prisma user table if needed
       const prismaUser = await this.prisma.user.findUnique({
@@ -213,7 +215,9 @@ export class UsersService {
         });
       }
     } catch (err: any) {
-      this.logger.warn(`Could not sync profile update to Prisma user: ${err.message}`);
+      this.logger.warn(
+        `Could not sync profile update to Prisma user: ${err.message}`,
+      );
     }
 
     return this.formatProfile(updatedProfile)!;
@@ -264,7 +268,9 @@ export class UsersService {
 
     if (error) {
       this.logger.error(`Error querying ${role}s from Supabase`, error);
-      throw new InternalServerErrorException(`Failed to retrieve ${role}s list`);
+      throw new InternalServerErrorException(
+        `Failed to retrieve ${role}s list`,
+      );
     }
 
     const total = count ?? (data?.length || 0);

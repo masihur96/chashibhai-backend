@@ -42,7 +42,10 @@ export class AuthController {
   @Post('register')
   @ApiOperation({ summary: 'Register with phone + password' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
-  @ApiResponse({ status: 400, description: 'Phone already registered or invalid data' })
+  @ApiResponse({
+    status: 400,
+    description: 'Phone already registered or invalid data',
+  })
   async register(@Body() dto: RegisterDto) {
     return this.authService.register(dto);
   }
@@ -118,7 +121,10 @@ export class AuthController {
   async submitKyc(
     @CurrentUser() user: { supabaseId: string },
     @UploadedFiles()
-    files: { nidFront?: Express.Multer.File[]; nidBack?: Express.Multer.File[] },
+    files: {
+      nidFront?: Express.Multer.File[];
+      nidBack?: Express.Multer.File[];
+    },
     @Body() dto: KycDto,
   ) {
     if (!files.nidFront?.[0] || !files.nidBack?.[0]) {

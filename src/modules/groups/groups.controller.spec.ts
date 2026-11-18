@@ -79,9 +79,9 @@ describe('GroupsController', () => {
     });
 
     it('should throw UnauthorizedException if user ID is missing', async () => {
-      await expect(
-        controller.create({}, {} as CreateGroupDto),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(controller.create({}, {} as CreateGroupDto)).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
   });
 
@@ -192,10 +192,18 @@ describe('GroupsController', () => {
       const mockMessage = { id: 'msg-1', message: 'Hello everyone' };
       (groupsService.sendMessage as jest.Mock).mockResolvedValue(mockMessage);
 
-      const result = await controller.sendMessage('grp-1', { sub: 'user-1' }, dto);
+      const result = await controller.sendMessage(
+        'grp-1',
+        { sub: 'user-1' },
+        dto,
+      );
 
       expect(result).toEqual({ success: true, data: mockMessage });
-      expect(groupsService.sendMessage).toHaveBeenCalledWith('grp-1', 'user-1', dto);
+      expect(groupsService.sendMessage).toHaveBeenCalledWith(
+        'grp-1',
+        'user-1',
+        dto,
+      );
     });
   });
 
@@ -211,7 +219,10 @@ describe('GroupsController', () => {
       const result = await controller.postDemand('grp-1', { sub: 'creator-1' });
 
       expect(result).toEqual({ success: true, data: mockDemandRes });
-      expect(groupsService.postDemand).toHaveBeenCalledWith('grp-1', 'creator-1');
+      expect(groupsService.postDemand).toHaveBeenCalledWith(
+        'grp-1',
+        'creator-1',
+      );
     });
   });
 });

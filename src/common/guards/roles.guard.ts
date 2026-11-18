@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@prisma/client';
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -31,9 +36,11 @@ export class RolesGuard implements CanActivate {
     const hasRole = requiredRoles.some(
       (role) => String(role).toUpperCase() === userRole,
     );
-    
+
     if (!hasRole) {
-      throw new ForbiddenException('Access denied: You do not have permission for this action');
+      throw new ForbiddenException(
+        'Access denied: You do not have permission for this action',
+      );
     }
 
     return true;

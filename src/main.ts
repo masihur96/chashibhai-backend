@@ -17,7 +17,11 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       // Allow mobile apps (no origin) or any Flutter local/web origins
-      if (!origin || origin.startsWith('http://localhost') || origin.startsWith('https://')) {
+      if (
+        !origin ||
+        origin.startsWith('http://localhost') ||
+        origin.startsWith('https://')
+      ) {
         callback(null, true);
       } else {
         callback(null, true);

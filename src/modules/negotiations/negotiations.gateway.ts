@@ -49,7 +49,9 @@ export class NegotiationsGateway
   }
 
   handleDisconnect(client: Socket) {
-    this.logger.log(`Client disconnected from negotiations gateway: ${client.id}`);
+    this.logger.log(
+      `Client disconnected from negotiations gateway: ${client.id}`,
+    );
   }
 
   @SubscribeMessage('joinNegotiation')

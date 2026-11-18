@@ -126,7 +126,9 @@ export class WalletService {
         };
       }
     } catch (e: any) {
-      this.logger.warn(`RPC update_wallet_balance failed, using direct query fallback: ${e.message}`);
+      this.logger.warn(
+        `RPC update_wallet_balance failed, using direct query fallback: ${e.message}`,
+      );
     }
 
     // 2. Direct fallback
@@ -219,7 +221,9 @@ export class WalletService {
         };
       }
     } catch (e: any) {
-      this.logger.warn(`RPC update_wallet_balance failed, using direct query fallback: ${e.message}`);
+      this.logger.warn(
+        `RPC update_wallet_balance failed, using direct query fallback: ${e.message}`,
+      );
     }
 
     // 2. Direct fallback
@@ -369,7 +373,9 @@ export class WalletService {
 
     const totalAmount =
       customAmount ??
-      (lock ? Number(lock.amount) : Number(order.final_price) * Number(order.quantity));
+      (lock
+        ? Number(lock.amount)
+        : Number(order.final_price) * Number(order.quantity));
 
     const commission = Number(order.commission ?? 0.0);
     const netPayout = Math.max(0, totalAmount - commission);
@@ -565,11 +571,7 @@ export class WalletService {
 
   // ─── 9. Escrow Details for an Order (Participant Only) ──────────────────────
 
-  async getEscrowByOrderId(
-    orderId: string,
-    userId: string,
-    userRole?: string,
-  ) {
+  async getEscrowByOrderId(orderId: string, userId: string, userRole?: string) {
     const client = this.supabaseService.getAdminClient();
 
     // Verify order participant

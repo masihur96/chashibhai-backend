@@ -119,10 +119,18 @@ export class DemandsService {
     const deliveryLocation = dto.deliveryLocation ?? dto.delivery_location;
     const expiryTime = dto.expiryTime ?? dto.expiry_time;
     const tradeType = dto.tradeType ?? dto.trade_type;
-    let imageUrl = dto.imageUrl ?? dto.image_url ?? null;
+    const imageUrl = dto.imageUrl ?? dto.image_url ?? null;
 
-    if (!productName || !callingPrice || !deliveryLocation || !expiryTime || !tradeType) {
-      throw new BadRequestException('All required demand fields must be provided');
+    if (
+      !productName ||
+      !callingPrice ||
+      !deliveryLocation ||
+      !expiryTime ||
+      !tradeType
+    ) {
+      throw new BadRequestException(
+        'All required demand fields must be provided',
+      );
     }
 
     const expiryDate = new Date(expiryTime);
@@ -298,7 +306,9 @@ export class DemandsService {
 
     const { data, error } = await client
       .from('demand_posts')
-      .select('*, profiles:buyer_id(id, name, phone, avatar_url, district), demand_offers(*)')
+      .select(
+        '*, profiles:buyer_id(id, name, phone, avatar_url, district), demand_offers(*)',
+      )
       .eq('id', id)
       .single();
 
@@ -341,7 +351,8 @@ export class DemandsService {
     const updatePayload: Record<string, any> = {};
 
     const productName = dto.productName ?? dto.product_name;
-    if (productName !== undefined) updatePayload.product_name = productName.trim();
+    if (productName !== undefined)
+      updatePayload.product_name = productName.trim();
 
     if (dto.quantity !== undefined) updatePayload.quantity = dto.quantity;
 
@@ -478,7 +489,9 @@ export class DemandsService {
 
     if (offerError || !offer) {
       this.logger.error('Failed to create demand offer', offerError);
-      throw new InternalServerErrorException('Failed to submit offer on demand');
+      throw new InternalServerErrorException(
+        'Failed to submit offer on demand',
+      );
     }
 
     // Send notification to buyer
@@ -522,13 +535,20 @@ export class DemandsService {
 
     const { data: offers, error: offersError } = await client
       .from('demand_offers')
-      .select('*, profiles:farmer_id(id, name, phone, rating, avatar_url, district)')
+      .select(
+        '*, profiles:farmer_id(id, name, phone, rating, avatar_url, district)',
+      )
       .eq('demand_id', demandId)
       .order('offer_price', { ascending: true });
 
     if (offersError) {
-      this.logger.error(`Failed to get offers for demand ${demandId}`, offersError);
-      throw new InternalServerErrorException('Failed to retrieve demand offers');
+      this.logger.error(
+        `Failed to get offers for demand ${demandId}`,
+        offersError,
+      );
+      throw new InternalServerErrorException(
+        'Failed to retrieve demand offers',
+      );
     }
 
     return (offers || []).map((row) => this.formatOffer(row));
@@ -564,10 +584,14 @@ export class DemandsService {
     }
 
     if (demand.status === 'fulfilled') {
-      throw new BadRequestException('This demand post has already been fulfilled');
+      throw new BadRequestException(
+        'This demand post has already been fulfilled',
+      );
     }
     if (demand.status === 'expired') {
-      throw new BadRequestException('Cannot accept offers on an expired demand');
+      throw new BadRequestException(
+        'Cannot accept offers on an expired demand',
+      );
     }
 
     const { data: offer, error: offerError } = await client
@@ -610,7 +634,8 @@ export class DemandsService {
 
     return {
       success: true,
-      message: 'Offer accepted successfully. Demand fulfilled and order created.',
+      message:
+        'Offer accepted successfully. Demand fulfilled and order created.',
       data: {
         demandId,
         offerId,

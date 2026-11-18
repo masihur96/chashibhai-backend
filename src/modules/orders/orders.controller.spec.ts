@@ -49,13 +49,18 @@ describe('OrdersController', () => {
 
       (ordersService.findMyOrders as jest.Mock).mockResolvedValue(mockResult);
 
-      const result = await controller.getMyOrders({ sub: 'user-1' }, { status: 'pending' });
+      const result = await controller.getMyOrders(
+        { sub: 'user-1' },
+        { status: 'pending' },
+      );
 
       expect(result).toEqual({
         success: true,
         ...mockResult,
       });
-      expect(ordersService.findMyOrders).toHaveBeenCalledWith('user-1', { status: 'pending' });
+      expect(ordersService.findMyOrders).toHaveBeenCalledWith('user-1', {
+        status: 'pending',
+      });
     });
   });
 
@@ -64,13 +69,20 @@ describe('OrdersController', () => {
       const mockOrder = { id: 'ord-1', status: 'pending' };
       (ordersService.findOne as jest.Mock).mockResolvedValue(mockOrder);
 
-      const result = await controller.findOne('ord-1', { sub: 'buyer-1', role: 'buyer' });
+      const result = await controller.findOne('ord-1', {
+        sub: 'buyer-1',
+        role: 'buyer',
+      });
 
       expect(result).toEqual({
         success: true,
         data: mockOrder,
       });
-      expect(ordersService.findOne).toHaveBeenCalledWith('ord-1', 'buyer-1', 'buyer');
+      expect(ordersService.findOne).toHaveBeenCalledWith(
+        'ord-1',
+        'buyer-1',
+        'buyer',
+      );
     });
   });
 
@@ -79,13 +91,20 @@ describe('OrdersController', () => {
       const mockUpdated = { id: 'ord-1', status: 'dispatched' };
       (ordersService.dispatch as jest.Mock).mockResolvedValue(mockUpdated);
 
-      const result = await controller.dispatch('ord-1', { sub: 'farmer-1', role: 'farmer' });
+      const result = await controller.dispatch('ord-1', {
+        sub: 'farmer-1',
+        role: 'farmer',
+      });
 
       expect(result).toEqual({
         success: true,
         data: mockUpdated,
       });
-      expect(ordersService.dispatch).toHaveBeenCalledWith('ord-1', 'farmer-1', 'farmer');
+      expect(ordersService.dispatch).toHaveBeenCalledWith(
+        'ord-1',
+        'farmer-1',
+        'farmer',
+      );
     });
   });
 
@@ -94,13 +113,20 @@ describe('OrdersController', () => {
       const mockUpdated = { id: 'ord-1', status: 'delivered' };
       (ordersService.deliver as jest.Mock).mockResolvedValue(mockUpdated);
 
-      const result = await controller.deliver('ord-1', { sub: 'buyer-1', role: 'buyer' });
+      const result = await controller.deliver('ord-1', {
+        sub: 'buyer-1',
+        role: 'buyer',
+      });
 
       expect(result).toEqual({
         success: true,
         data: mockUpdated,
       });
-      expect(ordersService.deliver).toHaveBeenCalledWith('ord-1', 'buyer-1', 'buyer');
+      expect(ordersService.deliver).toHaveBeenCalledWith(
+        'ord-1',
+        'buyer-1',
+        'buyer',
+      );
     });
   });
 
@@ -109,13 +135,20 @@ describe('OrdersController', () => {
       const mockCancelled = { id: 'ord-1', status: 'cancelled' };
       (ordersService.cancel as jest.Mock).mockResolvedValue(mockCancelled);
 
-      const result = await controller.cancel('ord-1', { sub: 'buyer-1', role: 'buyer' });
+      const result = await controller.cancel('ord-1', {
+        sub: 'buyer-1',
+        role: 'buyer',
+      });
 
       expect(result).toEqual({
         success: true,
         data: mockCancelled,
       });
-      expect(ordersService.cancel).toHaveBeenCalledWith('ord-1', 'buyer-1', 'buyer');
+      expect(ordersService.cancel).toHaveBeenCalledWith(
+        'ord-1',
+        'buyer-1',
+        'buyer',
+      );
     });
   });
 
@@ -126,15 +159,24 @@ describe('OrdersController', () => {
         subtotal: 500.0,
       };
 
-      (ordersService.generateInvoice as jest.Mock).mockResolvedValue(mockInvoice);
+      (ordersService.generateInvoice as jest.Mock).mockResolvedValue(
+        mockInvoice,
+      );
 
-      const result = await controller.getInvoice('ord-1', { sub: 'buyer-1', role: 'buyer' });
+      const result = await controller.getInvoice('ord-1', {
+        sub: 'buyer-1',
+        role: 'buyer',
+      });
 
       expect(result).toEqual({
         success: true,
         data: mockInvoice,
       });
-      expect(ordersService.generateInvoice).toHaveBeenCalledWith('ord-1', 'buyer-1', 'buyer');
+      expect(ordersService.generateInvoice).toHaveBeenCalledWith(
+        'ord-1',
+        'buyer-1',
+        'buyer',
+      );
     });
   });
 });

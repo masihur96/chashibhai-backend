@@ -21,7 +21,7 @@ describe('CsvUtil', () => {
     });
 
     it('should escape strings containing newlines', () => {
-      expect(escapeCsvValue("Line1\nLine2")).toBe("\"Line1\nLine2\"");
+      expect(escapeCsvValue('Line1\nLine2')).toBe('"Line1\nLine2"');
     });
   });
 

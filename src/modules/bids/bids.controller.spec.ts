@@ -48,13 +48,19 @@ describe('BidsController', () => {
 
       (bidsService.placeBid as jest.Mock).mockResolvedValue(mockResult);
 
-      const result = await controller.placeBid({ sub: 'buyer-uuid-1' }, mockDto);
+      const result = await controller.placeBid(
+        { sub: 'buyer-uuid-1' },
+        mockDto,
+      );
 
       expect(result).toEqual({
         success: true,
         data: mockResult,
       });
-      expect(bidsService.placeBid).toHaveBeenCalledWith('buyer-uuid-1', mockDto);
+      expect(bidsService.placeBid).toHaveBeenCalledWith(
+        'buyer-uuid-1',
+        mockDto,
+      );
     });
   });
 

@@ -61,7 +61,8 @@ export class NegotiationsService {
         )
       : [];
 
-    const latest = rawOffers.length > 0 ? rawOffers[rawOffers.length - 1] : null;
+    const latest =
+      rawOffers.length > 0 ? rawOffers[rawOffers.length - 1] : null;
 
     return {
       id: raw.id,
@@ -566,7 +567,9 @@ export class NegotiationsService {
     }
 
     if (negotiation.status === 'accepted') {
-      throw new BadRequestException('Cannot reject an already accepted negotiation');
+      throw new BadRequestException(
+        'Cannot reject an already accepted negotiation',
+      );
     }
 
     const { error: updateError } = await client

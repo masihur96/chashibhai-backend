@@ -71,7 +71,9 @@ describe('NegotiationsService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: validProduct, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: validProduct, error: null }),
       });
 
       // Existing negotiation lookup
@@ -139,9 +141,9 @@ describe('NegotiationsService', () => {
     });
 
     it('should throw BadRequestException if neither productId nor demandId is provided', async () => {
-      await expect(
-        service.initiate('buyer-1', 'buyer', {}),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.initiate('buyer-1', 'buyer', {})).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw ForbiddenException if farmer negotiates on own product', async () => {
@@ -205,7 +207,9 @@ describe('NegotiationsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: mockNegotiation, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: mockNegotiation, error: null }),
         }),
       });
 
@@ -224,7 +228,9 @@ describe('NegotiationsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: mockNegotiation, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: mockNegotiation, error: null }),
         }),
       });
 
@@ -256,7 +262,9 @@ describe('NegotiationsService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: mockNegotiation, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: mockNegotiation, error: null }),
       });
       fromMock.mockReturnValueOnce({
         insert: jest.fn().mockReturnThis(),
@@ -317,7 +325,9 @@ describe('NegotiationsService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: mockNegotiation, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: mockNegotiation, error: null }),
       });
       fromMock.mockReturnValueOnce({
         update: jest.fn().mockReturnThis(),
@@ -345,7 +355,9 @@ describe('NegotiationsService', () => {
         totalAmount: 47.0,
         status: 'confirmed',
       });
-      expect(negotiationsGatewayMock.emitNegotiationAccepted).toHaveBeenCalledWith({
+      expect(
+        negotiationsGatewayMock.emitNegotiationAccepted,
+      ).toHaveBeenCalledWith({
         negotiationId: 'neg-1',
         acceptedBy: 'buyer-1',
         orderId: 'order-123',
@@ -367,7 +379,9 @@ describe('NegotiationsService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: mockNegotiation, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: mockNegotiation, error: null }),
       });
       fromMock.mockReturnValueOnce({
         update: jest.fn().mockReturnThis(),
@@ -380,7 +394,9 @@ describe('NegotiationsService', () => {
 
       expect(result.success).toBe(true);
       expect(result.data.status).toBe('rejected');
-      expect(negotiationsGatewayMock.emitNegotiationRejected).toHaveBeenCalledWith({
+      expect(
+        negotiationsGatewayMock.emitNegotiationRejected,
+      ).toHaveBeenCalledWith({
         negotiationId: 'neg-1',
         rejectedBy: 'farmer-1',
       });

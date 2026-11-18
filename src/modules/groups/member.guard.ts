@@ -36,7 +36,9 @@ export class MemberGuard implements CanActivate {
       .single();
 
     if (groupErr || !group) {
-      throw new NotFoundException(`Buying group with ID "${groupId}" not found`);
+      throw new NotFoundException(
+        `Buying group with ID "${groupId}" not found`,
+      );
     }
 
     const isCreator = group.created_by === userId;

@@ -204,13 +204,17 @@ export class BidsService {
 
     const { data, error } = await client
       .from('bids')
-      .select('*, profiles:buyer_id(id, name, phone, rating, avatar_url, district)')
+      .select(
+        '*, profiles:buyer_id(id, name, phone, rating, avatar_url, district)',
+      )
       .eq('product_id', productId)
       .order('amount', { ascending: false });
 
     if (error) {
       this.logger.error(`Failed to get bids for product ${productId}`, error);
-      throw new InternalServerErrorException('Failed to retrieve bids for this product');
+      throw new InternalServerErrorException(
+        'Failed to retrieve bids for this product',
+      );
     }
 
     return (data || []).map((row) => this.formatBid(row));
@@ -245,14 +249,19 @@ export class BidsService {
     // 2. Fetch the top bid
     const { data: topBid, error: bidError } = await client
       .from('bids')
-      .select('*, profiles:buyer_id(id, name, phone, rating, avatar_url, district)')
+      .select(
+        '*, profiles:buyer_id(id, name, phone, rating, avatar_url, district)',
+      )
       .eq('product_id', productId)
       .order('amount', { ascending: false })
       .limit(1)
       .maybeSingle();
 
     if (bidError) {
-      this.logger.error(`Error querying winning bid for ${productId}`, bidError);
+      this.logger.error(
+        `Error querying winning bid for ${productId}`,
+        bidError,
+      );
       throw new InternalServerErrorException('Failed to determine winning bid');
     }
 

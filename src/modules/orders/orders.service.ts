@@ -542,8 +542,7 @@ export class OrdersService {
       subtotal,
       commission,
       totalAmount: subtotal,
-      paymentStatus:
-        order.status === 'delivered' ? 'settled' : 'escrow_held',
+      paymentStatus: order.status === 'delivered' ? 'settled' : 'escrow_held',
     };
   }
 }

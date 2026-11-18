@@ -29,7 +29,8 @@ export class CreateReviewDto {
   reviewee_id?: string;
 
   @ApiProperty({
-    description: 'Order UUID linked to this review (must have status = delivered)',
+    description:
+      'Order UUID linked to this review (must have status = delivered)',
     example: 'a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d',
   })
   @IsNotEmpty()
@@ -59,7 +60,8 @@ export class CreateReviewDto {
 
   @ApiPropertyOptional({
     description: 'Optional review comment / feedback text',
-    example: 'Fresh produce, arrived promptly as described. Highly recommended!',
+    example:
+      'Fresh produce, arrived promptly as described. Highly recommended!',
     maxLength: 1000,
   })
   @IsOptional()

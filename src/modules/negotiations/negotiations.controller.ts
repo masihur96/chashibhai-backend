@@ -56,10 +56,7 @@ export class NegotiationsController {
     status: 201,
     description: 'Negotiation initiated successfully.',
   })
-  async initiate(
-    @CurrentUser() user: any,
-    @Body() dto: CreateNegotiationDto,
-  ) {
+  async initiate(@CurrentUser() user: any, @Body() dto: CreateNegotiationDto) {
     const { userId, role } = this.extractUser(user);
     const result = await this.negotiationsService.initiate(
       userId,

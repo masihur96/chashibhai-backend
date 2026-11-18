@@ -190,10 +190,7 @@ export class GroupsController {
     status: HttpStatus.OK,
     description: 'Paginated group chat messages.',
   })
-  async getMessages(
-    @Param('id') id: string,
-    @Query() query: QueryMessageDto,
-  ) {
+  async getMessages(@Param('id') id: string, @Query() query: QueryMessageDto) {
     const result = await this.groupsService.getMessages(id, query);
     return {
       success: true,

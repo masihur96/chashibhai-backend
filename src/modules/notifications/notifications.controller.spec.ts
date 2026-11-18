@@ -6,7 +6,9 @@ import { QueryNotificationDto } from './dto';
 
 describe('NotificationsController', () => {
   let controller: NotificationsController;
-  let notificationsService: Partial<Record<keyof NotificationsService, jest.Mock>>;
+  let notificationsService: Partial<
+    Record<keyof NotificationsService, jest.Mock>
+  >;
 
   beforeEach(async () => {
     notificationsService = {
@@ -43,7 +45,9 @@ describe('NotificationsController', () => {
       const result = await controller.getUnreadCount({ sub: 'user-1' });
 
       expect(result).toEqual({ success: true, count: 5 });
-      expect(notificationsService.getUnreadCount).toHaveBeenCalledWith('user-1');
+      expect(notificationsService.getUnreadCount).toHaveBeenCalledWith(
+        'user-1',
+      );
     });
 
     it('should throw UnauthorizedException if no user in token', async () => {
@@ -86,14 +90,19 @@ describe('NotificationsController', () => {
         data: mockResult.data,
         meta: mockResult.meta,
       });
-      expect(notificationsService.findAll).toHaveBeenCalledWith('user-1', query);
+      expect(notificationsService.findAll).toHaveBeenCalledWith(
+        'user-1',
+        query,
+      );
     });
   });
 
   describe('PATCH /:id/read', () => {
     it('should mark a specific notification as read', async () => {
       const mockNotif = { id: 'notif-1', isRead: true };
-      (notificationsService.markAsRead as jest.Mock).mockResolvedValue(mockNotif);
+      (notificationsService.markAsRead as jest.Mock).mockResolvedValue(
+        mockNotif,
+      );
 
       const result = await controller.markAsRead('notif-1', { sub: 'user-1' });
 
@@ -101,7 +110,10 @@ describe('NotificationsController', () => {
         success: true,
         data: mockNotif,
       });
-      expect(notificationsService.markAsRead).toHaveBeenCalledWith('notif-1', 'user-1');
+      expect(notificationsService.markAsRead).toHaveBeenCalledWith(
+        'notif-1',
+        'user-1',
+      );
     });
   });
 
@@ -116,7 +128,10 @@ describe('NotificationsController', () => {
       const result = await controller.delete('notif-1', { sub: 'user-1' });
 
       expect(result).toEqual(mockResult);
-      expect(notificationsService.delete).toHaveBeenCalledWith('notif-1', 'user-1');
+      expect(notificationsService.delete).toHaveBeenCalledWith(
+        'notif-1',
+        'user-1',
+      );
     });
   });
 });

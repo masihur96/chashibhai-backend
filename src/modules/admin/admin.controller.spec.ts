@@ -99,7 +99,9 @@ describe('AdminController', () => {
       const result = await controller.verifyUser('u-1', { isVerified: true });
 
       expect(result).toEqual(mockResult);
-      expect(adminService.verifyUser).toHaveBeenCalledWith('u-1', { isVerified: true });
+      expect(adminService.verifyUser).toHaveBeenCalledWith('u-1', {
+        isVerified: true,
+      });
     });
   });
 
@@ -111,7 +113,9 @@ describe('AdminController', () => {
       const result = await controller.banUser('u-1', { isBanned: true });
 
       expect(result).toEqual(mockResult);
-      expect(adminService.banUser).toHaveBeenCalledWith('u-1', { isBanned: true });
+      expect(adminService.banUser).toHaveBeenCalledWith('u-1', {
+        isBanned: true,
+      });
     });
   });
 
@@ -136,12 +140,18 @@ describe('AdminController', () => {
   describe('PATCH /products/:id/status', () => {
     it('should change product status', async () => {
       const mockResult = { success: true, message: 'Status updated' };
-      (adminService.updateProductStatus as jest.Mock).mockResolvedValue(mockResult);
+      (adminService.updateProductStatus as jest.Mock).mockResolvedValue(
+        mockResult,
+      );
 
-      const result = await controller.updateProductStatus('p-1', { status: 'cancelled' });
+      const result = await controller.updateProductStatus('p-1', {
+        status: 'cancelled',
+      });
 
       expect(result).toEqual(mockResult);
-      expect(adminService.updateProductStatus).toHaveBeenCalledWith('p-1', { status: 'cancelled' });
+      expect(adminService.updateProductStatus).toHaveBeenCalledWith('p-1', {
+        status: 'cancelled',
+      });
     });
   });
 
@@ -166,19 +176,27 @@ describe('AdminController', () => {
   describe('PATCH /orders/:id/status', () => {
     it('should override order status', async () => {
       const mockResult = { success: true, message: 'Status overridden' };
-      (adminService.updateOrderStatus as jest.Mock).mockResolvedValue(mockResult);
+      (adminService.updateOrderStatus as jest.Mock).mockResolvedValue(
+        mockResult,
+      );
 
-      const result = await controller.updateOrderStatus('ord-1', { status: 'delivered' });
+      const result = await controller.updateOrderStatus('ord-1', {
+        status: 'delivered',
+      });
 
       expect(result).toEqual(mockResult);
-      expect(adminService.updateOrderStatus).toHaveBeenCalledWith('ord-1', { status: 'delivered' });
+      expect(adminService.updateOrderStatus).toHaveBeenCalledWith('ord-1', {
+        status: 'delivered',
+      });
     });
   });
 
   describe('GET /wallet/escrow', () => {
     it('should return active escrow locks', async () => {
       const mockLocks = [{ id: 'esc-1', amount: 5000 }];
-      (adminService.getActiveEscrowLocks as jest.Mock).mockResolvedValue(mockLocks);
+      (adminService.getActiveEscrowLocks as jest.Mock).mockResolvedValue(
+        mockLocks,
+      );
 
       const result = await controller.getActiveEscrow();
 
@@ -189,7 +207,9 @@ describe('AdminController', () => {
   describe('POST /wallet/escrow/:orderId/release', () => {
     it('should force release escrow', async () => {
       const mockRelease = { success: true, netPayout: 4750 };
-      (adminService.forceReleaseEscrow as jest.Mock).mockResolvedValue(mockRelease);
+      (adminService.forceReleaseEscrow as jest.Mock).mockResolvedValue(
+        mockRelease,
+      );
 
       const result = await controller.forceReleaseEscrow('ord-1');
 
@@ -201,7 +221,9 @@ describe('AdminController', () => {
   describe('GET /analytics/revenue', () => {
     it('should return revenue analytics', async () => {
       const mockAnalytics = { totalRevenue: 100000, dailyBreakdown: [] };
-      (adminService.getRevenueAnalytics as jest.Mock).mockResolvedValue(mockAnalytics);
+      (adminService.getRevenueAnalytics as jest.Mock).mockResolvedValue(
+        mockAnalytics,
+      );
 
       const result = await controller.getRevenueAnalytics({});
 
@@ -234,7 +256,9 @@ describe('AdminController', () => {
   describe('GET /reports/transactions', () => {
     it('should return CSV text', async () => {
       const mockCsv = 'Transaction ID,User ID,Amount\ntrx-1,user-1,100';
-      (adminService.getTransactionReportCsv as jest.Mock).mockResolvedValue(mockCsv);
+      (adminService.getTransactionReportCsv as jest.Mock).mockResolvedValue(
+        mockCsv,
+      );
 
       const result = await controller.exportTransactionsReport();
 

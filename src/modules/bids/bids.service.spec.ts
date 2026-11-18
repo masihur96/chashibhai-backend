@@ -52,7 +52,7 @@ describe('BidsService', () => {
       status: 'active',
       minimum_price: 50.0,
       start_time: new Date(Date.now() - 3600000).toISOString(), // 1 hour ago
-      end_time: new Date(Date.now() + 3600000).toISOString(),   // 1 hour later
+      end_time: new Date(Date.now() + 3600000).toISOString(), // 1 hour later
     };
 
     it('should successfully place a higher bid and emit WebSocket event', async () => {
@@ -62,7 +62,9 @@ describe('BidsService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: validProduct, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: validProduct, error: null }),
       });
 
       // 2. Highest bid lookup (previous highest bid: 55)
@@ -114,7 +116,9 @@ describe('BidsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
         }),
       });
 
@@ -196,7 +200,9 @@ describe('BidsService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: validProduct, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: validProduct, error: null }),
       });
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
@@ -264,11 +270,15 @@ describe('BidsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: ongoingProduct, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: ongoingProduct, error: null }),
         }),
       });
 
-      await expect(service.getWinningBid('prod-1')).rejects.toThrow(BadRequestException);
+      await expect(service.getWinningBid('prod-1')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should return winner and emit auction:ended when auction has ended', async () => {
@@ -290,7 +300,9 @@ describe('BidsService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: endedProduct, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: endedProduct, error: null }),
       });
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),

@@ -65,10 +65,7 @@ export class BidsController {
       },
     },
   })
-  async placeBid(
-    @CurrentUser() user: any,
-    @Body() dto: CreateBidDto,
-  ) {
+  async placeBid(@CurrentUser() user: any, @Body() dto: CreateBidDto) {
     const buyerId = this.extractBuyerId(user);
     const bid = await this.bidsService.placeBid(buyerId, dto);
     return {

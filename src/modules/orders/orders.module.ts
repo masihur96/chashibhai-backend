@@ -8,12 +8,7 @@ import { SupabaseModule } from '../supabase/supabase.module';
 import { PrismaModule } from '../../prisma/prisma.module';
 
 @Module({
-  imports: [
-    SupabaseModule,
-    PrismaModule,
-    WalletModule,
-    NotificationsModule,
-  ],
+  imports: [SupabaseModule, PrismaModule, WalletModule, NotificationsModule],
   controllers: [OrdersController],
   providers: [OrdersService, OrderParticipantGuard],
   exports: [OrdersService],

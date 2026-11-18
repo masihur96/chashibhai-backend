@@ -1,4 +1,8 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  InternalServerErrorException,
+  Logger,
+} from '@nestjs/common';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { extname } from 'path';
 
@@ -66,7 +70,8 @@ export class SupabaseService {
    */
   getUserClient(accessToken: string): SupabaseClient {
     const url = process.env.SUPABASE_URL!;
-    const anonKey = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY!;
+    const anonKey =
+      process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
     return createClient(url, anonKey, {
       global: { headers: { Authorization: `Bearer ${accessToken}` } },
@@ -77,7 +82,10 @@ export class SupabaseService {
   // ─── Storage helpers ──────────────────────────────────────────────────────────
 
   /** Upload a user avatar to the 'avatars' bucket; returns the public URL. */
-  async uploadAvatar(userId: string, file: Express.Multer.File): Promise<string> {
+  async uploadAvatar(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<string> {
     try {
       const fileExt = extname(file.originalname);
       const filePath = `public/${userId}${fileExt}`;
@@ -121,15 +129,48 @@ export class SupabaseService {
     file: Express.Multer.File,
   ): Promise<string> {
     try {
-      const fileExt = extname(file.originalname);
+      const ext = extname(file.originalname || '');
+      const mimeExtMap: Record<string, string> = {
+        'image/jpeg': '.jpg',
+        'image/jpg': '.jpg',
+        'image/png': '.png',
+        'image/webp': '.webp',
+      };
+      const fileExt = ext || mimeExtMap[file.mimetype] || '.jpg';
       const filePath = `products/${productId}-${Date.now()}${fileExt}`;
 
-      const { error } = await this.adminClient.storage
+      let { error } = await this.adminClient.storage
         .from('product-images')
         .upload(filePath, file.buffer, {
-          contentType: file.mimetype,
+          contentType: file.mimetype || 'image/jpeg',
           upsert: true,
         });
+
+      if (
+        error &&
+        (error.message?.toLowerCase().includes('not found') ||
+          (error as any).statusCode === 404 ||
+          (error as any).statusCode === '404' ||
+          (error as any).status === 404)
+      ) {
+        try {
+          await this.adminClient.storage.createBucket('product-images', {
+            public: true,
+          });
+          const retry = await this.adminClient.storage
+            .from('product-images')
+            .upload(filePath, file.buffer, {
+              contentType: file.mimetype || 'image/jpeg',
+              upsert: true,
+            });
+          error = retry.error;
+        } catch (bucketErr) {
+          this.logger.warn(
+            'Failed to auto-create product-images bucket',
+            bucketErr,
+          );
+        }
+      }
 
       if (error) throw error;
 
@@ -150,9 +191,7 @@ export class SupabaseService {
       const pathParts = imageUrl.split('product-images/');
       const filePath = pathParts[1] || imageUrl.split('/').pop();
       if (!filePath) return;
-      await this.adminClient.storage
-        .from('product-images')
-        .remove([filePath]);
+      await this.adminClient.storage.from('product-images').remove([filePath]);
     } catch (error) {
       this.logger.warn('Error deleting product image', error);
     }

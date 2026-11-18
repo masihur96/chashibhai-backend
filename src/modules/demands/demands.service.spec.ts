@@ -75,7 +75,9 @@ describe('DemandsService', () => {
         from: jest.fn().mockReturnValue({
           insert: jest.fn().mockReturnThis(),
           select: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: mockCreated, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: mockCreated, error: null }),
         }),
       });
 
@@ -173,7 +175,9 @@ describe('DemandsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: mockDemand, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: mockDemand, error: null }),
         }),
       });
 
@@ -187,11 +191,15 @@ describe('DemandsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
         }),
       });
 
-      await expect(service.findOne('invalid-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -218,7 +226,9 @@ describe('DemandsService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: activeDemand, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: activeDemand, error: null }),
       });
       fromMock.mockReturnValueOnce({
         insert: jest.fn().mockReturnThis(),
@@ -248,7 +258,9 @@ describe('DemandsService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: activeDemand, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: activeDemand, error: null }),
         }),
       });
 

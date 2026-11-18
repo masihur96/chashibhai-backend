@@ -95,7 +95,8 @@ export class GroupsService {
     const target = Number(raw.target_quantity);
     const filled = Number(raw.filled_quantity ?? 0);
     const remaining = Math.max(0, target - filled);
-    const progress = target > 0 ? Math.min(100, Math.round((filled / target) * 100)) : 0;
+    const progress =
+      target > 0 ? Math.min(100, Math.round((filled / target) * 100)) : 0;
 
     return {
       id: raw.id,
@@ -180,7 +181,10 @@ export class GroupsService {
 
   // ─── 1. Create a Buying Group (Buyer) ────────────────────────────────────────
 
-  async create(userId: string, dto: CreateGroupDto): Promise<FormattedBuyingGroup> {
+  async create(
+    userId: string,
+    dto: CreateGroupDto,
+  ): Promise<FormattedBuyingGroup> {
     const client = this.supabaseService.getAdminClient();
 
     const name = dto.name?.trim();
@@ -188,7 +192,9 @@ export class GroupsService {
     const category = dto.category?.trim();
     const targetQuantity = Number(dto.targetQuantity ?? dto.target_quantity);
     const pricePerKg = Number(dto.pricePerKg ?? dto.price_per_kg);
-    const deliveryLocation = (dto.deliveryLocation ?? dto.delivery_location)?.trim();
+    const deliveryLocation = (
+      dto.deliveryLocation ?? dto.delivery_location
+    )?.trim();
     const expiryDateStr = dto.expiryDate ?? dto.expiry_date;
     const initialContribution = Number(
       dto.initialContribution ?? dto.initial_contribution ?? 0,
@@ -203,7 +209,9 @@ export class GroupsService {
       !deliveryLocation ||
       !expiryDateStr
     ) {
-      throw new BadRequestException('All required group fields must be provided');
+      throw new BadRequestException(
+        'All required group fields must be provided',
+      );
     }
 
     const expiryDate = new Date(expiryDateStr);
@@ -289,7 +297,10 @@ export class GroupsService {
           filledQuantity: initialContribution,
         });
       } catch (err: any) {
-        this.logger.error('Failed to auto-create demand on group fulfillment', err);
+        this.logger.error(
+          'Failed to auto-create demand on group fulfillment',
+          err,
+        );
       }
     }
 
@@ -337,7 +348,9 @@ export class GroupsService {
 
     if (error) {
       this.logger.error('Failed to list buying groups', error);
-      throw new InternalServerErrorException('Failed to retrieve buying groups');
+      throw new InternalServerErrorException(
+        'Failed to retrieve buying groups',
+      );
     }
 
     const total = count ?? (data?.length || 0);
@@ -376,7 +389,9 @@ export class GroupsService {
 
     let dbQuery = client
       .from('buying_groups')
-      .select('*, profiles:created_by(id, name, avatar_url, rating), group_members(id)')
+      .select(
+        '*, profiles:created_by(id, name, avatar_url, rating), group_members(id)',
+      )
       .order('created_at', { ascending: false });
 
     if (groupIds.length > 0) {
@@ -399,7 +414,10 @@ export class GroupsService {
 
   // ─── 4. Group Details + Members (Member Only) ───────────────────────────────
 
-  async findOne(groupId: string, userId?: string): Promise<FormattedBuyingGroup> {
+  async findOne(
+    groupId: string,
+    userId?: string,
+  ): Promise<FormattedBuyingGroup> {
     const client = this.supabaseService.getAdminClient();
 
     const { data: group, error: groupErr } = await client
@@ -409,7 +427,9 @@ export class GroupsService {
       .single();
 
     if (groupErr || !group) {
-      throw new NotFoundException(`Buying group with ID "${groupId}" not found`);
+      throw new NotFoundException(
+        `Buying group with ID "${groupId}" not found`,
+      );
     }
 
     const { data: members, error: memErr } = await client
@@ -457,7 +477,9 @@ export class GroupsService {
       .single();
 
     if (groupErr || !group) {
-      throw new NotFoundException(`Buying group with ID "${groupId}" not found`);
+      throw new NotFoundException(
+        `Buying group with ID "${groupId}" not found`,
+      );
     }
 
     if (group.status !== 'open' && group.status !== 'active') {
@@ -554,7 +576,10 @@ export class GroupsService {
           }
         }
       } catch (err: any) {
-        this.logger.error('Failed to auto-create demand on join fulfillment', err);
+        this.logger.error(
+          'Failed to auto-create demand on join fulfillment',
+          err,
+        );
       }
     }
 
@@ -611,7 +636,9 @@ export class GroupsService {
       .single();
 
     if (groupErr || !group) {
-      throw new NotFoundException(`Buying group with ID "${groupId}" not found`);
+      throw new NotFoundException(
+        `Buying group with ID "${groupId}" not found`,
+      );
     }
 
     if (group.status === 'fulfilled') {
@@ -639,14 +666,13 @@ export class GroupsService {
     const newFilledQuantity = Math.max(0, currentFilled - freedQuantity);
 
     // 3. Remove from group_members
-    await client
-      .from('group_members')
-      .delete()
-      .eq('id', member.id);
+    await client.from('group_members').delete().eq('id', member.id);
 
     // 4. Update buying_groups filled_quantity
     const newStatus =
-      newFilledQuantity === 0 && group.status === 'active' ? 'open' : group.status;
+      newFilledQuantity === 0 && group.status === 'active'
+        ? 'open'
+        : group.status;
 
     await client
       .from('buying_groups')
@@ -690,7 +716,9 @@ export class GroupsService {
 
     if (error) {
       this.logger.error('Failed to get group messages', error);
-      throw new InternalServerErrorException('Failed to retrieve chat messages');
+      throw new InternalServerErrorException(
+        'Failed to retrieve chat messages',
+      );
     }
 
     const total = count ?? (data?.length || 0);
@@ -788,7 +816,9 @@ export class GroupsService {
       .single();
 
     if (groupErr || !group) {
-      throw new NotFoundException(`Buying group with ID "${groupId}" not found`);
+      throw new NotFoundException(
+        `Buying group with ID "${groupId}" not found`,
+      );
     }
 
     if (group.created_by !== userId) {

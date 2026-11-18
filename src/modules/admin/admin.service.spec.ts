@@ -150,7 +150,11 @@ describe('AdminService', () => {
       };
       clientMock.from.mockReturnValue(chain);
 
-      const result = await service.getUsers({ role: 'farmer', page: 1, limit: 10 });
+      const result = await service.getUsers({
+        role: 'farmer',
+        page: 1,
+        limit: 10,
+      });
 
       expect(result.data).toHaveLength(1);
       expect(result.data[0].id).toBe('u-1');
@@ -165,7 +169,9 @@ describe('AdminService', () => {
       clientMock.from.mockReturnValue({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
       });
 
       await expect(service.verifyUser('missing-user')).rejects.toThrow(
@@ -174,7 +180,12 @@ describe('AdminService', () => {
     });
 
     it('should update verification status and notify user', async () => {
-      const mockUser = { id: 'u-1', name: 'Abdul', is_verified: true, nid_verified: true };
+      const mockUser = {
+        id: 'u-1',
+        name: 'Abdul',
+        is_verified: true,
+        nid_verified: true,
+      };
 
       clientMock.from.mockImplementation(() => ({
         select: jest.fn().mockReturnThis(),
@@ -183,7 +194,9 @@ describe('AdminService', () => {
         update: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: mockUser, error: null }),
+              single: jest
+                .fn()
+                .mockResolvedValue({ data: mockUser, error: null }),
             }),
           }),
         }),
@@ -213,11 +226,15 @@ describe('AdminService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockUser, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockUser, error: null }),
             update: jest.fn().mockReturnValue({
               eq: jest.fn().mockReturnValue({
                 select: jest.fn().mockReturnValue({
-                  single: jest.fn().mockResolvedValue({ data: mockUser, error: null }),
+                  single: jest
+                    .fn()
+                    .mockResolvedValue({ data: mockUser, error: null }),
                 }),
               }),
             }),
@@ -231,7 +248,10 @@ describe('AdminService', () => {
         return {};
       });
 
-      const result = await service.banUser('u-1', { isBanned: true, reason: 'Spam' });
+      const result = await service.banUser('u-1', {
+        isBanned: true,
+        reason: 'Spam',
+      });
 
       expect(result.success).toBe(true);
       expect(notificationsServiceMock.sendNotification).toHaveBeenCalledWith(
@@ -262,7 +282,9 @@ describe('AdminService', () => {
         single: jest.fn().mockResolvedValue({ data: mockUpdated, error: null }),
       });
 
-      const result = await service.updateProductStatus('p-1', { status: 'cancelled' });
+      const result = await service.updateProductStatus('p-1', {
+        status: 'cancelled',
+      });
 
       expect(result.success).toBe(true);
       expect(notificationsServiceMock.sendNotification).toHaveBeenCalledWith(
@@ -302,11 +324,15 @@ describe('AdminService', () => {
         }),
       }));
 
-      const result = await service.updateOrderStatus('ord-1', { status: 'delivered' });
+      const result = await service.updateOrderStatus('ord-1', {
+        status: 'delivered',
+      });
 
       expect(result.success).toBe(true);
       expect(walletServiceMock.releaseEscrow).toHaveBeenCalledWith('ord-1');
-      expect(notificationsServiceMock.sendNotification).toHaveBeenCalledTimes(2);
+      expect(notificationsServiceMock.sendNotification).toHaveBeenCalledTimes(
+        2,
+      );
     });
   });
 
@@ -323,7 +349,9 @@ describe('AdminService', () => {
       const chain: any = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        order: jest.fn().mockResolvedValue({ data: mockTransactions, error: null }),
+        order: jest
+          .fn()
+          .mockResolvedValue({ data: mockTransactions, error: null }),
       };
       clientMock.from.mockReturnValue(chain);
 
@@ -436,8 +464,12 @@ describe('AdminService', () => {
 
       const csv = await service.getTransactionReportCsv();
 
-      expect(csv).toContain('Transaction ID,User ID,User Name,User Phone,User Role');
-      expect(csv).toContain('trx-1,u-1,"Abdul, Farmer",01700000000,farmer,ord-1,release,5000,"Escrow release, verified"');
+      expect(csv).toContain(
+        'Transaction ID,User ID,User Name,User Phone,User Role',
+      );
+      expect(csv).toContain(
+        'trx-1,u-1,"Abdul, Farmer",01700000000,farmer,ord-1,release,5000,"Escrow release, verified"',
+      );
     });
   });
 });

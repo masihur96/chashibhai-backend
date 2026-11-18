@@ -104,9 +104,16 @@ export class UsersController {
       type: 'object',
       properties: {
         name: { type: 'string', example: 'Rafiq Ahmed' },
-        avatarUrl: { type: 'string', example: 'https://cdn.example.com/avatar.jpg' },
+        avatarUrl: {
+          type: 'string',
+          example: 'https://cdn.example.com/avatar.jpg',
+        },
         district: { type: 'string', example: 'Bogura' },
-        file: { type: 'string', format: 'binary', description: 'Optional avatar image file' },
+        file: {
+          type: 'string',
+          format: 'binary',
+          description: 'Optional avatar image file',
+        },
       },
     },
   })
@@ -172,7 +179,9 @@ export class UsersController {
   @Get('farmers')
   @UseGuards(RolesGuard)
   @Roles(Role.BUYER, Role.ADMIN)
-  @ApiOperation({ summary: 'List all farmers (Buyer role only, paginated with filters)' })
+  @ApiOperation({
+    summary: 'List all farmers (Buyer role only, paginated with filters)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Paginated list of farmers.',
@@ -186,7 +195,9 @@ export class UsersController {
   @Get('buyers')
   @UseGuards(RolesGuard)
   @Roles(Role.FARMER, Role.ADMIN)
-  @ApiOperation({ summary: 'List all buyers (Farmer role only, paginated with filters)' })
+  @ApiOperation({
+    summary: 'List all buyers (Farmer role only, paginated with filters)',
+  })
   @ApiResponse({
     status: 200,
     description: 'Paginated list of buyers.',
@@ -198,7 +209,10 @@ export class UsersController {
   // ─── 5. GET /:id (Get public profile, Role: Any) ───────────────────────────
 
   @Get(':id')
-  @ApiOperation({ summary: 'Get public profile by ID (name, role, rating, rating_count, avatar_url)' })
+  @ApiOperation({
+    summary:
+      'Get public profile by ID (name, role, rating, rating_count, avatar_url)',
+  })
   @ApiParam({ name: 'id', description: 'User UUID' })
   @ApiResponse({
     status: 200,

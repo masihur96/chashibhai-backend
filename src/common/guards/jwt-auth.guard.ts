@@ -12,7 +12,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       const message =
         info?.name === 'TokenExpiredError'
           ? 'Token has expired. Please refresh your session.'
-          : info?.message ?? 'Unauthorized – valid JWT required';
+          : (info?.message ?? 'Unauthorized – valid JWT required');
       throw new UnauthorizedException(message);
     }
     return user;

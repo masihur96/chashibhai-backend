@@ -25,6 +25,7 @@ export interface FormattedProduct {
   startTime: string;
   endTime: string;
   imageUrl: string | null;
+  image_url?: string | null;
   createdAt?: string;
   farmer?: {
     id: string;
@@ -60,6 +61,7 @@ export class ProductsService {
       startTime: raw.start_time,
       endTime: raw.end_time,
       imageUrl: raw.image_url ?? null,
+      image_url: raw.image_url ?? null,
       createdAt: raw.created_at,
       farmer: raw.profiles
         ? {
@@ -76,7 +78,11 @@ export class ProductsService {
 
   // ─── 1. Create Product ───────────────────────────────────────────────────────
 
-  async create(farmerId: string, dto: CreateProductDto): Promise<FormattedProduct> {
+  async create(
+    farmerId: string,
+    dto: CreateProductDto,
+    file?: Express.Multer.File,
+  ): Promise<FormattedProduct> {
     const client = this.supabaseService.getAdminClient();
 
     const productName = dto.productName ?? dto.product_name;
@@ -102,7 +108,9 @@ export class ProductsService {
     const startDate = new Date(startTime);
     const endDate = new Date(endTime);
     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-      throw new BadRequestException('Invalid date format for startTime or endTime');
+      throw new BadRequestException(
+        'Invalid date format for startTime or endTime',
+      );
     }
     if (endDate <= startDate) {
       throw new BadRequestException('endTime must be after startTime');
@@ -122,7 +130,7 @@ export class ProductsService {
       status: 'active',
     };
 
-    const { data, error } = await client
+    let { data, error } = await client
       .from('products')
       .insert(payload)
       .select()
@@ -135,6 +143,42 @@ export class ProductsService {
       );
     }
 
+    // If an image file was provided, upload to Supabase Storage and update product
+    if (file) {
+      try {
+        const uploadedUrl = await this.supabaseService.uploadProductImage(
+          data.id,
+          file,
+        );
+        const { data: updated, error: updateError } = await client
+          .from('products')
+          .update({ image_url: uploadedUrl })
+          .eq('id', data.id)
+          .select()
+          .single();
+
+        if (updateError || !updated) {
+          this.logger.error(
+            `Failed to update product ${data.id} image_url in database`,
+            updateError,
+          );
+          data.image_url = uploadedUrl;
+        } else {
+          data = updated;
+        }
+      } catch (uploadError: any) {
+        this.logger.error(
+          'Failed to upload product image to Supabase Storage',
+          uploadError,
+        );
+        // Rollback inserted product record if file upload fails
+        await client.from('products').delete().eq('id', data.id);
+        throw new InternalServerErrorException(
+          uploadError.message ?? 'Failed to upload product image',
+        );
+      }
+    }
+
     return this.formatProduct(data)!;
   }
 
@@ -145,9 +189,12 @@ export class ProductsService {
 
     let dbQuery = client
       .from('products')
-      .select('*, profiles:farmer_id(id, name, phone, rating, avatar_url, district)', {
-        count: 'exact',
-      });
+      .select(
+        '*, profiles:farmer_id(id, name, phone, rating, avatar_url, district)',
+        {
+          count: 'exact',
+        },
+      );
 
     // Status filter (default to 'active')
     if (query.status && query.status !== 'all') {
@@ -158,7 +205,10 @@ export class ProductsService {
 
     // Category filter
     if (query.category?.trim()) {
-      dbQuery = dbQuery.ilike('category', `%${query.category.trim().toLowerCase()}%`);
+      dbQuery = dbQuery.ilike(
+        'category',
+        `%${query.category.trim().toLowerCase()}%`,
+      );
     }
 
     // Trade Type filter
@@ -222,7 +272,9 @@ export class ProductsService {
 
     const { data, error } = await client
       .from('products')
-      .select('*, profiles:farmer_id(id, name, phone, rating, avatar_url, district)')
+      .select(
+        '*, profiles:farmer_id(id, name, phone, rating, avatar_url, district)',
+      )
       .eq('id', id)
       .single();
 
@@ -248,7 +300,10 @@ export class ProductsService {
     }
 
     if (query.category?.trim()) {
-      dbQuery = dbQuery.ilike('category', `%${query.category.trim().toLowerCase()}%`);
+      dbQuery = dbQuery.ilike(
+        'category',
+        `%${query.category.trim().toLowerCase()}%`,
+      );
     }
 
     if (query.search?.trim()) {
@@ -265,8 +320,13 @@ export class ProductsService {
     const { data, count, error } = await dbQuery;
 
     if (error) {
-      this.logger.error(`Failed to list products for farmer ${farmerId}`, error);
-      throw new InternalServerErrorException('Failed to retrieve your products');
+      this.logger.error(
+        `Failed to list products for farmer ${farmerId}`,
+        error,
+      );
+      throw new InternalServerErrorException(
+        'Failed to retrieve your products',
+      );
     }
 
     const total = count ?? (data?.length || 0);
@@ -299,6 +359,7 @@ export class ProductsService {
     userId: string,
     dto: UpdateProductDto,
     userRole?: string,
+    file?: Express.Multer.File,
   ): Promise<FormattedProduct> {
     const client = this.supabaseService.getAdminClient();
 
@@ -336,10 +397,12 @@ export class ProductsService {
     const updatePayload: Record<string, any> = {};
 
     const productName = dto.productName ?? dto.product_name;
-    if (productName !== undefined) updatePayload.product_name = productName.trim();
+    if (productName !== undefined)
+      updatePayload.product_name = productName.trim();
 
     if (dto.quantity !== undefined) updatePayload.quantity = dto.quantity;
-    if (dto.unit !== undefined) updatePayload.unit = dto.unit.toUpperCase().trim();
+    if (dto.unit !== undefined)
+      updatePayload.unit = dto.unit.toUpperCase().trim();
 
     const minPrice = dto.minimumPrice ?? dto.minimum_price;
     if (minPrice !== undefined) updatePayload.minimum_price = minPrice;
@@ -365,6 +428,18 @@ export class ProductsService {
 
     const imageUrl = dto.imageUrl ?? dto.image_url;
     if (imageUrl !== undefined) updatePayload.image_url = imageUrl;
+
+    // If a new image file is uploaded, upload to Supabase and delete old image
+    if (file) {
+      const uploadedUrl = await this.supabaseService.uploadProductImage(
+        id,
+        file,
+      );
+      updatePayload.image_url = uploadedUrl;
+      if (existing.image_url && existing.image_url !== uploadedUrl) {
+        await this.supabaseService.deleteProductImage(existing.image_url);
+      }
+    }
 
     const { data: updated, error: updateError } = await client
       .from('products')
@@ -472,8 +547,13 @@ export class ProductsService {
       .single();
 
     if (updateError || !updated) {
-      this.logger.error(`Failed to save image URL for product ${id}`, updateError);
-      throw new InternalServerErrorException('Failed to save product image URL');
+      this.logger.error(
+        `Failed to save image URL for product ${id}`,
+        updateError,
+      );
+      throw new InternalServerErrorException(
+        'Failed to save product image URL',
+      );
     }
 
     // 4. Optionally delete previous image if different

@@ -82,7 +82,9 @@ describe('NotificationsService', () => {
           return {
             insert: jest.fn().mockReturnThis(),
             select: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockInserted, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockInserted, error: null }),
           };
         }
         if (table === 'profiles') {
@@ -130,14 +132,18 @@ describe('NotificationsService', () => {
           return {
             insert: jest.fn().mockReturnThis(),
             select: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockInserted, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockInserted, error: null }),
           };
         }
         if (table === 'profiles') {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+            maybeSingle: jest
+              .fn()
+              .mockResolvedValue({ data: null, error: null }),
           };
         }
         return {};
@@ -198,7 +204,9 @@ describe('NotificationsService', () => {
       clientMock.from.mockReturnValue({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
       });
 
       await expect(service.markAsRead('missing-id', 'user-1')).rejects.toThrow(
@@ -228,11 +236,15 @@ describe('NotificationsService', () => {
       clientMock.from.mockImplementation(() => ({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValueOnce({ data: mockNotif, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValueOnce({ data: mockNotif, error: null }),
         update: jest.fn().mockReturnValue({
           eq: jest.fn().mockReturnValue({
             select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: mockUpdated, error: null }),
+              single: jest
+                .fn()
+                .mockResolvedValue({ data: mockUpdated, error: null }),
             }),
           }),
         }),

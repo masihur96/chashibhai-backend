@@ -1,9 +1,20 @@
-import { IsOptional, IsString, IsInt, Min, Max, IsNumber, IsBoolean } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsInt,
+  Min,
+  Max,
+  IsNumber,
+  IsBoolean,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 
 export class QueryUserDto {
-  @ApiPropertyOptional({ description: 'Page number (starts from 1)', default: 1 })
+  @ApiPropertyOptional({
+    description: 'Page number (starts from 1)',
+    default: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -23,7 +34,10 @@ export class QueryUserDto {
   @IsString()
   district?: string;
 
-  @ApiPropertyOptional({ description: 'Minimum rating (snake_case)', example: 4.0 })
+  @ApiPropertyOptional({
+    description: 'Minimum rating (snake_case)',
+    example: 4.0,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -31,7 +45,10 @@ export class QueryUserDto {
   @Max(5)
   rating_min?: number;
 
-  @ApiPropertyOptional({ description: 'Minimum rating (camelCase)', example: 4.0 })
+  @ApiPropertyOptional({
+    description: 'Minimum rating (camelCase)',
+    example: 4.0,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -39,21 +56,31 @@ export class QueryUserDto {
   @Max(5)
   ratingMin?: number;
 
-  @ApiPropertyOptional({ description: 'Filter by verification status (snake_case)', example: true })
+  @ApiPropertyOptional({
+    description: 'Filter by verification status (snake_case)',
+    example: true,
+  })
   @IsOptional()
   @Transform(({ value }) => {
-    if (value === 'true' || value === true || value === 1 || value === '1') return true;
-    if (value === 'false' || value === false || value === 0 || value === '0') return false;
+    if (value === 'true' || value === true || value === 1 || value === '1')
+      return true;
+    if (value === 'false' || value === false || value === 0 || value === '0')
+      return false;
     return value;
   })
   @IsBoolean()
   is_verified?: boolean;
 
-  @ApiPropertyOptional({ description: 'Filter by verification status (camelCase)', example: true })
+  @ApiPropertyOptional({
+    description: 'Filter by verification status (camelCase)',
+    example: true,
+  })
   @IsOptional()
   @Transform(({ value }) => {
-    if (value === 'true' || value === true || value === 1 || value === '1') return true;
-    if (value === 'false' || value === false || value === 0 || value === '0') return false;
+    if (value === 'true' || value === true || value === 1 || value === '1')
+      return true;
+    if (value === 'false' || value === false || value === 0 || value === '0')
+      return false;
     return value;
   })
   @IsBoolean()

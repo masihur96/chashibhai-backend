@@ -87,11 +87,16 @@ describe('UsersController', () => {
         avatarUrl: 'https://cdn.example.com/avatar.jpg',
       };
 
-      (usersService.updateProfile as jest.Mock).mockResolvedValue(updatedProfile);
+      (usersService.updateProfile as jest.Mock).mockResolvedValue(
+        updatedProfile,
+      );
 
       const result = await controller.updateMe(
         { sub: 'user-sub-1' },
-        { name: 'Rafiq Ahmed', avatarUrl: 'https://cdn.example.com/avatar.jpg' },
+        {
+          name: 'Rafiq Ahmed',
+          avatarUrl: 'https://cdn.example.com/avatar.jpg',
+        },
       );
 
       expect(result).toEqual({
@@ -100,7 +105,10 @@ describe('UsersController', () => {
       });
       expect(usersService.updateProfile).toHaveBeenCalledWith(
         'user-sub-1',
-        { name: 'Rafiq Ahmed', avatarUrl: 'https://cdn.example.com/avatar.jpg' },
+        {
+          name: 'Rafiq Ahmed',
+          avatarUrl: 'https://cdn.example.com/avatar.jpg',
+        },
         undefined,
       );
     });
@@ -126,12 +134,17 @@ describe('UsersController', () => {
         },
       };
 
-      (usersService.listUsersByRole as jest.Mock).mockResolvedValue(mockListResult);
+      (usersService.listUsersByRole as jest.Mock).mockResolvedValue(
+        mockListResult,
+      );
 
       const result = await controller.getFarmers({ page: 1, limit: 10 });
 
       expect(result).toEqual(mockListResult);
-      expect(usersService.listUsersByRole).toHaveBeenCalledWith('farmer', { page: 1, limit: 10 });
+      expect(usersService.listUsersByRole).toHaveBeenCalledWith('farmer', {
+        page: 1,
+        limit: 10,
+      });
     });
   });
 
@@ -155,12 +168,17 @@ describe('UsersController', () => {
         },
       };
 
-      (usersService.listUsersByRole as jest.Mock).mockResolvedValue(mockListResult);
+      (usersService.listUsersByRole as jest.Mock).mockResolvedValue(
+        mockListResult,
+      );
 
       const result = await controller.getBuyers({ page: 1, limit: 10 });
 
       expect(result).toEqual(mockListResult);
-      expect(usersService.listUsersByRole).toHaveBeenCalledWith('buyer', { page: 1, limit: 10 });
+      expect(usersService.listUsersByRole).toHaveBeenCalledWith('buyer', {
+        page: 1,
+        limit: 10,
+      });
     });
   });
 
@@ -175,7 +193,9 @@ describe('UsersController', () => {
         avatarUrl: 'https://cdn.example.com/avatar.jpg',
       };
 
-      (usersService.getPublicProfile as jest.Mock).mockResolvedValue(mockPublic);
+      (usersService.getPublicProfile as jest.Mock).mockResolvedValue(
+        mockPublic,
+      );
 
       const result = await controller.getPublicProfile('target-uuid');
 

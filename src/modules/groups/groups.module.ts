@@ -9,12 +9,7 @@ import { DemandsModule } from '../demands/demands.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    SupabaseModule,
-    DemandsModule,
-    NotificationsModule,
-  ],
+  imports: [PrismaModule, SupabaseModule, DemandsModule, NotificationsModule],
   controllers: [GroupsController],
   providers: [GroupsService, GroupsGateway, MemberGuard],
   exports: [GroupsService, GroupsGateway],

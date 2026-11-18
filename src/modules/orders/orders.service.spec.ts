@@ -105,7 +105,9 @@ describe('OrdersService', () => {
         500.0,
         'ord-123',
       );
-      expect(notificationsServiceMock.sendNotification).toHaveBeenCalledTimes(2);
+      expect(notificationsServiceMock.sendNotification).toHaveBeenCalledTimes(
+        2,
+      );
     });
   });
 
@@ -139,7 +141,9 @@ describe('OrdersService', () => {
         }),
       });
 
-      const result = await service.findMyOrders('user-1', { status: 'pending' });
+      const result = await service.findMyOrders('user-1', {
+        status: 'pending',
+      });
 
       expect(result.data.length).toBe(1);
       expect(result.data[0].id).toBe('ord-1');
@@ -211,13 +215,17 @@ describe('OrdersService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: pendingOrder, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: pendingOrder, error: null }),
       });
       fromMock.mockReturnValueOnce({
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: dispatchedOrder, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: dispatchedOrder, error: null }),
       });
 
       supabaseMock.getAdminClient.mockReturnValue({ from: fromMock });
@@ -245,7 +253,9 @@ describe('OrdersService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: pendingOrder, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: pendingOrder, error: null }),
         }),
       });
 
@@ -275,13 +285,17 @@ describe('OrdersService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: dispatchedOrder, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: dispatchedOrder, error: null }),
       });
       fromMock.mockReturnValueOnce({
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: deliveredOrder, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: deliveredOrder, error: null }),
       });
 
       supabaseMock.getAdminClient.mockReturnValue({ from: fromMock });
@@ -310,7 +324,9 @@ describe('OrdersService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: pendingOrder, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: pendingOrder, error: null }),
         }),
       });
 
@@ -340,13 +356,17 @@ describe('OrdersService', () => {
       fromMock.mockReturnValueOnce({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: pendingOrder, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: pendingOrder, error: null }),
       });
       fromMock.mockReturnValueOnce({
         update: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: cancelledOrder, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: cancelledOrder, error: null }),
       });
 
       supabaseMock.getAdminClient.mockReturnValue({ from: fromMock });
@@ -375,7 +395,9 @@ describe('OrdersService', () => {
         from: jest.fn().mockReturnValue({
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
-          single: jest.fn().mockResolvedValue({ data: deliveredOrder, error: null }),
+          single: jest
+            .fn()
+            .mockResolvedValue({ data: deliveredOrder, error: null }),
         }),
       });
 
@@ -421,7 +443,10 @@ describe('OrdersService', () => {
         }),
       });
 
-      const invoice = await service.generateInvoice('ord-98765432-1111', 'buyer-1');
+      const invoice = await service.generateInvoice(
+        'ord-98765432-1111',
+        'buyer-1',
+      );
 
       expect(invoice).toBeDefined();
       expect(invoice.invoiceNumber).toBe('INV-ORD-9876');

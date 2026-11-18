@@ -67,6 +67,50 @@ describe('ProductsController', () => {
       });
       expect(productsService.create).toHaveBeenCalledWith('farmer-1', mockDto);
     });
+
+    it('should create and return product when image file is uploaded', async () => {
+      const mockDto = {
+        productName: 'Boro Rice',
+        quantity: 500,
+        unit: 'KG',
+        minimumPrice: 45.0,
+        tradeType: TradeType.BOTH,
+        category: 'rice',
+        startTime: '2026-11-20T08:00:00Z',
+        endTime: '2026-11-25T20:00:00Z',
+      };
+
+      const mockFile = {
+        originalname: 'rice.jpg',
+        mimetype: 'image/jpeg',
+        buffer: Buffer.from('rice-bytes'),
+      } as Express.Multer.File;
+
+      const mockCreated = {
+        id: 'uuid-1',
+        farmerId: 'farmer-1',
+        ...mockDto,
+        status: 'active',
+        imageUrl: 'https://cdn.example.com/product-images/rice.jpg',
+        image_url: 'https://cdn.example.com/product-images/rice.jpg',
+      };
+
+      (productsService.create as jest.Mock).mockResolvedValue(mockCreated);
+
+      const result = await controller.create({ sub: 'farmer-1' }, mockDto, {
+        file: [mockFile],
+      });
+
+      expect(result).toEqual({
+        success: true,
+        data: mockCreated,
+      });
+      expect(productsService.create).toHaveBeenCalledWith(
+        'farmer-1',
+        mockDto,
+        mockFile,
+      );
+    });
   });
 
   describe('GET /', () => {
@@ -84,7 +128,10 @@ describe('ProductsController', () => {
         success: true,
         ...mockResult,
       });
-      expect(productsService.findAll).toHaveBeenCalledWith({ page: 1, limit: 10 });
+      expect(productsService.findAll).toHaveBeenCalledWith({
+        page: 1,
+        limit: 10,
+      });
     });
   });
 
@@ -95,15 +142,23 @@ describe('ProductsController', () => {
         meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
       };
 
-      (productsService.findMyProducts as jest.Mock).mockResolvedValue(mockResult);
+      (productsService.findMyProducts as jest.Mock).mockResolvedValue(
+        mockResult,
+      );
 
-      const result = await controller.getMyProducts({ sub: 'farmer-1' }, { page: 1, limit: 10 });
+      const result = await controller.getMyProducts(
+        { sub: 'farmer-1' },
+        { page: 1, limit: 10 },
+      );
 
       expect(result).toEqual({
         success: true,
         ...mockResult,
       });
-      expect(productsService.findMyProducts).toHaveBeenCalledWith('farmer-1', { page: 1, limit: 10 });
+      expect(productsService.findMyProducts).toHaveBeenCalledWith('farmer-1', {
+        page: 1,
+        limit: 10,
+      });
     });
   });
 
@@ -114,15 +169,23 @@ describe('ProductsController', () => {
         meta: { page: 1, limit: 10, total: 1, totalPages: 1 },
       };
 
-      (productsService.findByCategory as jest.Mock).mockResolvedValue(mockResult);
+      (productsService.findByCategory as jest.Mock).mockResolvedValue(
+        mockResult,
+      );
 
-      const result = await controller.findByCategory('rice', { page: 1, limit: 10 });
+      const result = await controller.findByCategory('rice', {
+        page: 1,
+        limit: 10,
+      });
 
       expect(result).toEqual({
         success: true,
         ...mockResult,
       });
-      expect(productsService.findByCategory).toHaveBeenCalledWith('rice', { page: 1, limit: 10 });
+      expect(productsService.findByCategory).toHaveBeenCalledWith('rice', {
+        page: 1,
+        limit: 10,
+      });
     });
   });
 
@@ -167,13 +230,23 @@ describe('ProductsController', () => {
 
   describe('DELETE /:id', () => {
     it('should delete product', async () => {
-      const mockDeleteResult = { success: true, message: 'Product deleted successfully' };
+      const mockDeleteResult = {
+        success: true,
+        message: 'Product deleted successfully',
+      };
       (productsService.remove as jest.Mock).mockResolvedValue(mockDeleteResult);
 
-      const result = await controller.remove('prod-1', { sub: 'farmer-1', role: 'farmer' });
+      const result = await controller.remove('prod-1', {
+        sub: 'farmer-1',
+        role: 'farmer',
+      });
 
       expect(result).toEqual(mockDeleteResult);
-      expect(productsService.remove).toHaveBeenCalledWith('prod-1', 'farmer-1', 'farmer');
+      expect(productsService.remove).toHaveBeenCalledWith(
+        'prod-1',
+        'farmer-1',
+        'farmer',
+      );
     });
   });
 
@@ -187,10 +260,15 @@ describe('ProductsController', () => {
 
       const mockUploadResult = {
         imageUrl: 'https://cdn.example.com/product-images/rice.jpg',
-        product: { id: 'prod-1', imageUrl: 'https://cdn.example.com/product-images/rice.jpg' },
+        product: {
+          id: 'prod-1',
+          imageUrl: 'https://cdn.example.com/product-images/rice.jpg',
+        },
       };
 
-      (productsService.uploadImage as jest.Mock).mockResolvedValue(mockUploadResult);
+      (productsService.uploadImage as jest.Mock).mockResolvedValue(
+        mockUploadResult,
+      );
 
       const result = await controller.uploadImage(
         'prod-1',
@@ -209,6 +287,25 @@ describe('ProductsController', () => {
         mockFile,
         'farmer',
       );
+    });
+  });
+
+  describe('GET /:id/image', () => {
+    it('should return product image URL', async () => {
+      const mockProduct = {
+        id: 'prod-1',
+        imageUrl: 'https://cdn.example.com/product-images/rice.jpg',
+      };
+      (productsService.findOne as jest.Mock).mockResolvedValue(mockProduct);
+
+      const result = await controller.getImage('prod-1');
+
+      expect(result).toEqual({
+        success: true,
+        imageUrl: 'https://cdn.example.com/product-images/rice.jpg',
+        image_url: 'https://cdn.example.com/product-images/rice.jpg',
+      });
+      expect(productsService.findOne).toHaveBeenCalledWith('prod-1');
     });
   });
 });

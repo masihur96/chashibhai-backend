@@ -98,12 +98,16 @@ export class AdminOrderFilterDto {
   @IsIn(['pending', 'dispatched', 'delivered', 'cancelled', 'all'])
   status?: string;
 
-  @ApiPropertyOptional({ description: 'Filter orders starting from date (ISO string)' })
+  @ApiPropertyOptional({
+    description: 'Filter orders starting from date (ISO string)',
+  })
   @IsOptional()
   @IsDateString()
   from?: string;
 
-  @ApiPropertyOptional({ description: 'Filter orders ending at date (ISO string)' })
+  @ApiPropertyOptional({
+    description: 'Filter orders ending at date (ISO string)',
+  })
   @IsOptional()
   @IsDateString()
   to?: string;

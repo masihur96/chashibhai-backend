@@ -9,6 +9,7 @@ import {
   IsPositive,
   Min,
   MaxLength,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
@@ -20,20 +21,22 @@ export enum TradeType {
 }
 
 export class CreateProductDto {
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Name of the agricultural product',
     example: 'Boro Rice',
   })
-  @IsNotEmpty()
+  @ValidateIf((o: CreateProductDto) => !o.product_name || o.productName !== undefined)
+  @IsNotEmpty({ message: 'productName or product_name is required' })
   @IsString()
   @MaxLength(200)
-  productName!: string;
+  productName?: string;
 
   @ApiPropertyOptional({
     description: 'Alias for productName (snake_case)',
     example: 'Boro Rice',
   })
-  @IsOptional()
+  @ValidateIf((o: CreateProductDto) => !o.productName || o.product_name !== undefined)
+  @IsNotEmpty({ message: 'productName or product_name is required' })
   @IsString()
   @MaxLength(200)
   product_name?: string;
@@ -58,41 +61,51 @@ export class CreateProductDto {
   @MaxLength(50)
   unit?: string = 'KG';
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Base / minimum price per unit',
     example: 45.0,
   })
-  @IsNotEmpty()
+  @ValidateIf(
+    (o: CreateProductDto) =>
+      o.minimum_price === undefined || o.minimumPrice !== undefined,
+  )
+  @IsNotEmpty({ message: 'minimumPrice or minimum_price is required' })
   @Type(() => Number)
   @IsNumber()
   @Min(0)
-  minimumPrice!: number;
+  minimumPrice?: number;
 
   @ApiPropertyOptional({
     description: 'Alias for minimumPrice (snake_case)',
     example: 45.0,
   })
-  @IsOptional()
+  @ValidateIf(
+    (o: CreateProductDto) =>
+      o.minimumPrice === undefined || o.minimum_price !== undefined,
+  )
+  @IsNotEmpty({ message: 'minimumPrice or minimum_price is required' })
   @Type(() => Number)
   @IsNumber()
   @Min(0)
   minimum_price?: number;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Trade mechanism for the listing',
     enum: ['auction', 'negotiation', 'both'],
     example: 'both',
   })
-  @IsNotEmpty()
+  @ValidateIf((o: CreateProductDto) => !o.trade_type || o.tradeType !== undefined)
+  @IsNotEmpty({ message: 'tradeType or trade_type is required' })
   @IsIn(['auction', 'negotiation', 'both'])
-  tradeType!: TradeType;
+  tradeType?: TradeType;
 
   @ApiPropertyOptional({
     description: 'Alias for tradeType (snake_case)',
     enum: ['auction', 'negotiation', 'both'],
     example: 'both',
   })
-  @IsOptional()
+  @ValidateIf((o: CreateProductDto) => !o.tradeType || o.trade_type !== undefined)
+  @IsNotEmpty({ message: 'tradeType or trade_type is required' })
   @IsIn(['auction', 'negotiation', 'both'])
   trade_type?: TradeType;
 
@@ -105,35 +118,39 @@ export class CreateProductDto {
   @MaxLength(100)
   category!: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'Start time of the listing in ISO 8601 format',
     example: '2026-11-20T08:00:00Z',
   })
-  @IsNotEmpty()
+  @ValidateIf((o: CreateProductDto) => !o.start_time || o.startTime !== undefined)
+  @IsNotEmpty({ message: 'startTime or start_time is required' })
   @IsDateString()
-  startTime!: string;
+  startTime?: string;
 
   @ApiPropertyOptional({
     description: 'Alias for startTime (snake_case)',
     example: '2026-11-20T08:00:00Z',
   })
-  @IsOptional()
+  @ValidateIf((o: CreateProductDto) => !o.startTime || o.start_time !== undefined)
+  @IsNotEmpty({ message: 'startTime or start_time is required' })
   @IsDateString()
   start_time?: string;
 
-  @ApiProperty({
+  @ApiPropertyOptional({
     description: 'End time of the listing in ISO 8601 format',
     example: '2026-11-25T20:00:00Z',
   })
-  @IsNotEmpty()
+  @ValidateIf((o: CreateProductDto) => !o.end_time || o.endTime !== undefined)
+  @IsNotEmpty({ message: 'endTime or end_time is required' })
   @IsDateString()
-  endTime!: string;
+  endTime?: string;
 
   @ApiPropertyOptional({
     description: 'Alias for endTime (snake_case)',
     example: '2026-11-25T20:00:00Z',
   })
-  @IsOptional()
+  @ValidateIf((o: CreateProductDto) => !o.endTime || o.end_time !== undefined)
+  @IsNotEmpty({ message: 'endTime or end_time is required' })
   @IsDateString()
   end_time?: string;
 
@@ -142,6 +159,7 @@ export class CreateProductDto {
     example: 'https://cdn.example.com/products/rice.jpg',
   })
   @IsOptional()
+  @ValidateIf((o: CreateProductDto) => !!o.imageUrl)
   @IsString()
   @IsUrl()
   imageUrl?: string;
@@ -151,7 +169,24 @@ export class CreateProductDto {
     example: 'https://cdn.example.com/products/rice.jpg',
   })
   @IsOptional()
+  @ValidateIf((o: CreateProductDto) => !!o.image_url)
   @IsString()
   @IsUrl()
   image_url?: string;
+
+  @ApiPropertyOptional({
+    description: 'Product image file (multipart/form-data upload)',
+    type: 'string',
+    format: 'binary',
+  })
+  @IsOptional()
+  file?: any;
+
+  @ApiPropertyOptional({
+    description: 'Alias for file (multipart/form-data upload)',
+    type: 'string',
+    format: 'binary',
+  })
+  @IsOptional()
+  image?: any;
 }

@@ -34,7 +34,9 @@ export class NegotiationParticipantGuard implements CanActivate {
       .single();
 
     if (error || !negotiation) {
-      throw new NotFoundException(`Negotiation with ID "${negotiationId}" not found`);
+      throw new NotFoundException(
+        `Negotiation with ID "${negotiationId}" not found`,
+      );
     }
 
     const isBuyer = negotiation.buyer_id === userId;

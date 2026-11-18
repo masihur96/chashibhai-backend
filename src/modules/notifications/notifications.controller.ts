@@ -40,7 +40,9 @@ export class NotificationsController {
   // ─── 1. GET /unread-count (Must precede /:id) ───────────────────────────────
 
   @Get('unread-count')
-  @ApiOperation({ summary: 'Get total unread notifications count for authenticated user' })
+  @ApiOperation({
+    summary: 'Get total unread notifications count for authenticated user',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Unread notification count.',
@@ -64,7 +66,9 @@ export class NotificationsController {
 
   @Patch('read-all')
   @HttpCode(HttpStatus.OK)
-  @ApiOperation({ summary: 'Mark all notifications as read for authenticated user' })
+  @ApiOperation({
+    summary: 'Mark all notifications as read for authenticated user',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'All notifications marked as read.',
@@ -78,7 +82,10 @@ export class NotificationsController {
   // ─── 3. GET / (List notifications, paginated) ───────────────────────────────
 
   @Get()
-  @ApiOperation({ summary: 'List notifications for authenticated user with filters and pagination' })
+  @ApiOperation({
+    summary:
+      'List notifications for authenticated user with filters and pagination',
+  })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Paginated user notifications.',

@@ -91,9 +91,7 @@ describe('ReviewsController', () => {
 
   describe('GET /order/:orderId (findByOrder)', () => {
     it('should return reviews for an order', async () => {
-      const mockReviews = [
-        { id: 'rev-1', reviewerId: 'buyer-1', rating: 5 },
-      ];
+      const mockReviews = [{ id: 'rev-1', reviewerId: 'buyer-1', rating: 5 }];
 
       (reviewsService.findByOrder as jest.Mock).mockResolvedValue(mockReviews);
 

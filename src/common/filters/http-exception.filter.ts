@@ -35,8 +35,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       typeof exceptionResponse === 'object' &&
       exceptionResponse !== null
     ) {
-      message =
-        (exceptionResponse as any).message ?? 'Internal Server Error';
+      message = (exceptionResponse as any).message ?? 'Internal Server Error';
     } else {
       message = 'Internal Server Error';
     }

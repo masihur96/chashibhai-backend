@@ -164,14 +164,18 @@ describe('GroupsService', () => {
           return {
             insert: jest.fn().mockReturnThis(),
             select: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockGroup, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockGroup, error: null }),
           };
         }
         if (table === 'group_members') {
           return {
             insert: jest.fn().mockReturnThis(),
             select: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockMember, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockMember, error: null }),
           };
         }
         return {};
@@ -277,7 +281,9 @@ describe('GroupsService', () => {
       const chain: any = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
       };
       clientMock.from.mockReturnValue(chain);
 
@@ -310,14 +316,18 @@ describe('GroupsService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockGroup, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockGroup, error: null }),
           };
         }
         if (table === 'group_members') {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            order: jest.fn().mockResolvedValue({ data: mockMembers, error: null }),
+            order: jest
+              .fn()
+              .mockResolvedValue({ data: mockMembers, error: null }),
           };
         }
         return {};
@@ -350,9 +360,9 @@ describe('GroupsService', () => {
       };
       clientMock.from.mockReturnValue(chain);
 
-      await expect(service.join('grp-1', 'user-2', { quantity: 100 })).rejects.toThrow(
-        BadRequestException,
-      );
+      await expect(
+        service.join('grp-1', 'user-2', { quantity: 100 }),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should join group and trigger fulfillment + demand creation when target reached', async () => {
@@ -391,7 +401,9 @@ describe('GroupsService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockGroup, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockGroup, error: null }),
             update: jest.fn().mockReturnThis(),
           };
         }
@@ -399,9 +411,13 @@ describe('GroupsService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            maybeSingle: jest.fn().mockResolvedValue({ data: null, error: null }),
+            maybeSingle: jest
+              .fn()
+              .mockResolvedValue({ data: null, error: null }),
             insert: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockNewMember, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockNewMember, error: null }),
           };
         }
         return {};
@@ -419,12 +435,15 @@ describe('GroupsService', () => {
         expiryTime: futureDate,
         tradeType: 'both',
       });
-      expect(groupsGatewayMock.emitGroupFulfilled).toHaveBeenCalledWith('grp-1', {
-        groupId: 'grp-1',
-        demandId: 'demand-bulk-1',
-        targetQuantity: 1000,
-        filledQuantity: 1000,
-      });
+      expect(groupsGatewayMock.emitGroupFulfilled).toHaveBeenCalledWith(
+        'grp-1',
+        {
+          groupId: 'grp-1',
+          demandId: 'demand-bulk-1',
+          targetQuantity: 1000,
+          filledQuantity: 1000,
+        },
+      );
     });
   });
 
@@ -468,7 +487,9 @@ describe('GroupsService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockGroup, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockGroup, error: null }),
             update: jest.fn().mockReturnThis(),
           };
         }
@@ -476,7 +497,9 @@ describe('GroupsService', () => {
           return {
             select: jest.fn().mockReturnThis(),
             eq: jest.fn().mockReturnThis(),
-            single: jest.fn().mockResolvedValue({ data: mockMember, error: null }),
+            single: jest
+              .fn()
+              .mockResolvedValue({ data: mockMember, error: null }),
             delete: jest.fn().mockReturnThis(),
           };
         }
@@ -545,7 +568,9 @@ describe('GroupsService', () => {
       const chain: any = {
         insert: jest.fn().mockReturnThis(),
         select: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: mockInserted, error: null }),
+        single: jest
+          .fn()
+          .mockResolvedValue({ data: mockInserted, error: null }),
       };
       clientMock.from.mockReturnValue(chain);
 
@@ -624,10 +649,13 @@ describe('GroupsService', () => {
         expiryTime: futureDate,
         tradeType: 'both',
       });
-      expect(groupsGatewayMock.emitDemandCreated).toHaveBeenCalledWith('grp-1', {
-        groupId: 'grp-1',
-        demandId: 'demand-created-1',
-      });
+      expect(groupsGatewayMock.emitDemandCreated).toHaveBeenCalledWith(
+        'grp-1',
+        {
+          groupId: 'grp-1',
+          demandId: 'demand-created-1',
+        },
+      );
     });
   });
 });

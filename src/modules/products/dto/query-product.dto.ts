@@ -12,7 +12,10 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { TradeType } from './create-product.dto';
 
 export class QueryProductDto {
-  @ApiPropertyOptional({ description: 'Page number (starts from 1)', default: 1 })
+  @ApiPropertyOptional({
+    description: 'Page number (starts from 1)',
+    default: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -57,7 +60,10 @@ export class QueryProductDto {
   @Min(0)
   minPrice?: number;
 
-  @ApiPropertyOptional({ description: 'Minimum price filter (snake_case alias)', example: 30.0 })
+  @ApiPropertyOptional({
+    description: 'Minimum price filter (snake_case alias)',
+    example: 30.0,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -71,14 +77,20 @@ export class QueryProductDto {
   @Min(0)
   maxPrice?: number;
 
-  @ApiPropertyOptional({ description: 'Maximum price filter (snake_case alias)', example: 100.0 })
+  @ApiPropertyOptional({
+    description: 'Maximum price filter (snake_case alias)',
+    example: 100.0,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
   max_price?: number;
 
-  @ApiPropertyOptional({ description: 'Search term for product name', example: 'Rice' })
+  @ApiPropertyOptional({
+    description: 'Search term for product name',
+    example: 'Rice',
+  })
   @IsOptional()
   @IsString()
   search?: string;

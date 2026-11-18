@@ -5,9 +5,12 @@ describe('SupabaseService', () => {
   let service: SupabaseService;
 
   beforeAll(() => {
-    process.env.SUPABASE_URL = process.env.SUPABASE_URL || 'https://mock.supabase.co';
-    process.env.SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock_service_role_key';
-    process.env.SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'mock_anon_key';
+    process.env.SUPABASE_URL =
+      process.env.SUPABASE_URL || 'https://mock.supabase.co';
+    process.env.SUPABASE_SERVICE_ROLE_KEY =
+      process.env.SUPABASE_SERVICE_ROLE_KEY || 'mock_service_role_key';
+    process.env.SUPABASE_ANON_KEY =
+      process.env.SUPABASE_ANON_KEY || 'mock_anon_key';
   });
 
   beforeEach(async () => {

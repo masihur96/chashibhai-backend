@@ -50,10 +50,7 @@ export class OrdersController {
     status: 200,
     description: 'Paginated list of user orders.',
   })
-  async getMyOrders(
-    @CurrentUser() user: any,
-    @Query() query: QueryOrderDto,
-  ) {
+  async getMyOrders(@CurrentUser() user: any, @Query() query: QueryOrderDto) {
     const { userId } = this.extractUser(user);
     const result = await this.ordersService.findMyOrders(userId, query);
     return {
@@ -157,8 +154,7 @@ export class OrdersController {
   @Patch(':id/cancel')
   @UseGuards(OrderParticipantGuard)
   @ApiOperation({
-    summary:
-      'Cancel order: refunds escrow to buyer wallet (Participant only)',
+    summary: 'Cancel order: refunds escrow to buyer wallet (Participant only)',
   })
   @ApiParam({ name: 'id', description: 'Order UUID' })
   @ApiResponse({

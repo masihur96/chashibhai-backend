@@ -146,7 +146,10 @@ export class GroupsGateway implements OnGatewayConnection, OnGatewayDisconnect {
   /**
    * Broadcast demand created event
    */
-  emitDemandCreated(groupId: string, payload: { groupId: string; demandId: string }) {
+  emitDemandCreated(
+    groupId: string,
+    payload: { groupId: string; demandId: string },
+  ) {
     const room = `group-${groupId}`;
     if (this.server) {
       this.server.to(room).emit('group:demand_created', payload);

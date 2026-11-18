@@ -12,7 +12,10 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { DemandTradeType } from './create-demand.dto';
 
 export class QueryDemandDto {
-  @ApiPropertyOptional({ description: 'Page number (starts from 1)', default: 1 })
+  @ApiPropertyOptional({
+    description: 'Page number (starts from 1)',
+    default: 1,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsInt()
@@ -27,7 +30,10 @@ export class QueryDemandDto {
   @Max(100)
   limit?: number = 10;
 
-  @ApiPropertyOptional({ description: 'Search by product name', example: 'Potato' })
+  @ApiPropertyOptional({
+    description: 'Search by product name',
+    example: 'Potato',
+  })
   @IsOptional()
   @IsString()
   search?: string;
@@ -37,7 +43,10 @@ export class QueryDemandDto {
   @IsString()
   productName?: string;
 
-  @ApiPropertyOptional({ description: 'Alias for search (snake_case)', example: 'Potato' })
+  @ApiPropertyOptional({
+    description: 'Alias for search (snake_case)',
+    example: 'Potato',
+  })
   @IsOptional()
   @IsString()
   product_name?: string;
@@ -49,7 +58,10 @@ export class QueryDemandDto {
   @Min(0)
   minPrice?: number;
 
-  @ApiPropertyOptional({ description: 'Minimum calling price (snake_case)', example: 20.0 })
+  @ApiPropertyOptional({
+    description: 'Minimum calling price (snake_case)',
+    example: 20.0,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()
@@ -63,7 +75,10 @@ export class QueryDemandDto {
   @Min(0)
   maxPrice?: number;
 
-  @ApiPropertyOptional({ description: 'Maximum calling price (snake_case)', example: 50.0 })
+  @ApiPropertyOptional({
+    description: 'Maximum calling price (snake_case)',
+    example: 50.0,
+  })
   @IsOptional()
   @Type(() => Number)
   @IsNumber()

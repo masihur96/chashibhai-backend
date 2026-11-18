@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { SupabaseService } from '../supabase/supabase.service';
 
 export interface JwtPayload {
-  sub: string;    // Supabase user UUID
+  sub: string; // Supabase user UUID
   phone?: string;
   email?: string;
   role: string;
@@ -54,7 +54,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, 'jwt') {
       supabaseId: payload.sub,
       phone: payload.phone,
       email: payload.email,
-      role: profile.role,            // always up-to-date from DB
+      role: profile.role, // always up-to-date from DB
       isVerified: profile.is_verified,
       nidVerified: profile.nid_verified,
     };

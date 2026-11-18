@@ -10,6 +10,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  UploadedFiles,
   BadRequestException,
   UnauthorizedException,
   HttpCode,
@@ -24,7 +25,10 @@ import {
   ApiBody,
   ApiParam,
 } from '@nestjs/swagger';
-import { FileInterceptor } from '@nestjs/platform-express';
+import {
+  FileInterceptor,
+  FileFieldsInterceptor,
+} from '@nestjs/platform-express';
 import { ProductsService } from './products.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -56,7 +60,11 @@ export class ProductsController {
   @HttpCode(HttpStatus.CREATED)
   @UseGuards(RolesGuard)
   @Roles(Role.FARMER, Role.ADMIN)
-  @ApiOperation({ summary: 'Create a new product listing (Farmer role only)' })
+  @ApiOperation({
+    summary:
+      'Create a new product listing (Farmer role only; supports multipart file upload for image)',
+  })
+  @ApiConsumes('application/json', 'multipart/form-data')
   @ApiResponse({
     status: 201,
     description: 'Product listing created successfully.',
@@ -75,16 +83,52 @@ export class ProductsController {
           status: 'active',
           startTime: '2026-11-20T08:00:00Z',
           endTime: '2026-11-25T20:00:00Z',
+          imageUrl:
+            'https://xxx.supabase.co/storage/v1/object/public/product-images/products/uuid.jpg',
         },
       },
     },
   })
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'file', maxCount: 1 },
+        { name: 'image', maxCount: 1 },
+      ],
+      {
+        limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+        fileFilter: (req, file, cb) => {
+          if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/i)) {
+            return cb(
+              new BadRequestException(
+                'Only image files (jpg, jpeg, png, webp) are allowed!',
+              ),
+              false,
+            );
+          }
+          cb(null, true);
+        },
+      },
+    ),
+  )
   async create(
     @CurrentUser() user: any,
     @Body() dto: CreateProductDto,
+    @UploadedFiles()
+    files?:
+      | {
+          file?: Express.Multer.File[];
+          image?: Express.Multer.File[];
+        }
+      | Express.Multer.File,
   ) {
     const { userId } = this.extractUser(user);
-    const product = await this.productsService.create(userId, dto);
+    const file =
+      files &&
+      ('buffer' in files ? files : files?.file?.[0] || files?.image?.[0]);
+    const product = file
+      ? await this.productsService.create(userId, dto, file)
+      : await this.productsService.create(userId, dto);
     return {
       success: true,
       data: product,
@@ -174,19 +218,57 @@ export class ProductsController {
   @Patch(':id')
   @UseGuards(RolesGuard)
   @Roles(Role.FARMER, Role.ADMIN)
-  @ApiOperation({ summary: 'Update product listing (Owner farmer only)' })
+  @ApiOperation({
+    summary:
+      'Update product listing (Owner farmer only; supports multipart file upload for image)',
+  })
+  @ApiConsumes('application/json', 'multipart/form-data')
   @ApiParam({ name: 'id', description: 'Product UUID' })
   @ApiResponse({
     status: 200,
     description: 'Product updated successfully.',
   })
+  @UseInterceptors(
+    FileFieldsInterceptor(
+      [
+        { name: 'file', maxCount: 1 },
+        { name: 'image', maxCount: 1 },
+      ],
+      {
+        limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+        fileFilter: (req, file, cb) => {
+          if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/i)) {
+            return cb(
+              new BadRequestException(
+                'Only image files (jpg, jpeg, png, webp) are allowed!',
+              ),
+              false,
+            );
+          }
+          cb(null, true);
+        },
+      },
+    ),
+  )
   async update(
     @Param('id') id: string,
     @CurrentUser() user: any,
     @Body() dto: UpdateProductDto,
+    @UploadedFiles()
+    files?:
+      | {
+          file?: Express.Multer.File[];
+          image?: Express.Multer.File[];
+        }
+      | Express.Multer.File,
   ) {
     const { userId, role } = this.extractUser(user);
-    const updated = await this.productsService.update(id, userId, dto, role);
+    const file =
+      files &&
+      ('buffer' in files ? files : files?.file?.[0] || files?.image?.[0]);
+    const updated = file
+      ? await this.productsService.update(id, userId, dto, role, file)
+      : await this.productsService.update(id, userId, dto, role);
     return {
       success: true,
       data: updated,
@@ -215,7 +297,8 @@ export class ProductsController {
   @UseGuards(RolesGuard)
   @Roles(Role.FARMER, Role.ADMIN)
   @ApiOperation({
-    summary: 'Upload product image to Supabase "product-images" bucket (Owner only)',
+    summary:
+      'Upload product image to Supabase "product-images" bucket (Owner only)',
   })
   @ApiParam({ name: 'id', description: 'Product UUID' })
   @ApiConsumes('multipart/form-data')
@@ -252,11 +335,34 @@ export class ProductsController {
       throw new BadRequestException('Image file is required');
     }
     const { userId, role } = this.extractUser(user);
-    const result = await this.productsService.uploadImage(id, userId, file, role);
+    const result = await this.productsService.uploadImage(
+      id,
+      userId,
+      file,
+      role,
+    );
     return {
       success: true,
       message: 'Product image uploaded successfully',
       data: result,
+    };
+  }
+
+  // ─── 9. GET /:id/image (Get product image URL, Role: Any) ─────────────────
+
+  @Get(':id/image')
+  @ApiOperation({ summary: 'Get product image URL by product ID' })
+  @ApiParam({ name: 'id', description: 'Product UUID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Product image URL returned successfully.',
+  })
+  async getImage(@Param('id') id: string) {
+    const product = await this.productsService.findOne(id);
+    return {
+      success: true,
+      imageUrl: product.imageUrl,
+      image_url: product.imageUrl,
     };
   }
 }

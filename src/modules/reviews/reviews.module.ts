@@ -6,11 +6,7 @@ import { SupabaseModule } from '../supabase/supabase.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
-  imports: [
-    PrismaModule,
-    SupabaseModule,
-    NotificationsModule,
-  ],
+  imports: [PrismaModule, SupabaseModule, NotificationsModule],
   controllers: [ReviewsController],
   providers: [ReviewsService],
   exports: [ReviewsService],

@@ -61,10 +61,18 @@ export class NotificationsService {
     if (['order', 'payment', 'alert', 'promo'].includes(lower)) {
       return lower;
     }
-    if (lower.includes('order') || lower.includes('bid') || lower.includes('demand')) {
+    if (
+      lower.includes('order') ||
+      lower.includes('bid') ||
+      lower.includes('demand')
+    ) {
       return 'order';
     }
-    if (lower.includes('wallet') || lower.includes('escrow') || lower.includes('pay')) {
+    if (
+      lower.includes('wallet') ||
+      lower.includes('escrow') ||
+      lower.includes('pay')
+    ) {
       return 'payment';
     }
     if (lower.includes('promo') || lower.includes('discount')) {
@@ -83,7 +91,9 @@ export class NotificationsService {
     metadata?: any,
   ) {
     try {
-      this.logger.log(`FCM push queued for token [${fcmToken.slice(0, 8)}...]: ${title}`);
+      this.logger.log(
+        `FCM push queued for token [${fcmToken.slice(0, 8)}...]: ${title}`,
+      );
       // If FIREBASE_SERVER_KEY or HTTP FCM is configured, deliver payload
       // Handled gracefully without blocking core in-app notifications
     } catch (e: any) {
@@ -108,7 +118,9 @@ export class NotificationsService {
     const metadata = payload.metadata ?? {};
 
     if (!title || !message) {
-      throw new BadRequestException('Notification title and message are required');
+      throw new BadRequestException(
+        'Notification title and message are required',
+      );
     }
 
     const client = this.supabaseService.getAdminClient();
@@ -129,7 +141,10 @@ export class NotificationsService {
       .single();
 
     if (error || !inserted) {
-      this.logger.error(`Failed to store notification for user ${userId}`, error);
+      this.logger.error(
+        `Failed to store notification for user ${userId}`,
+        error,
+      );
       throw new InternalServerErrorException('Failed to create notification');
     }
 
@@ -216,7 +231,9 @@ export class NotificationsService {
 
     if (error) {
       this.logger.error(`Failed to list notifications for ${userId}`, error);
-      throw new InternalServerErrorException('Failed to retrieve notifications');
+      throw new InternalServerErrorException(
+        'Failed to retrieve notifications',
+      );
     }
 
     const total = count ?? (data?.length || 0);
@@ -286,7 +303,10 @@ export class NotificationsService {
       .eq('is_read', false);
 
     if (error) {
-      this.logger.error(`Failed to mark all notifications as read for ${userId}`, error);
+      this.logger.error(
+        `Failed to mark all notifications as read for ${userId}`,
+        error,
+      );
       throw new InternalServerErrorException('Failed to update notifications');
     }
 
@@ -351,7 +371,9 @@ export class NotificationsService {
 
     if (error) {
       this.logger.error(`Failed to get unread count for ${userId}`, error);
-      throw new InternalServerErrorException('Failed to count unread notifications');
+      throw new InternalServerErrorException(
+        'Failed to count unread notifications',
+      );
     }
 
     return { count: count ?? 0 };

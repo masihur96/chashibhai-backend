@@ -106,10 +106,7 @@ export class DemandsController {
     status: 200,
     description: "List of authenticated buyer's demands with offers count.",
   })
-  async getMyDemands(
-    @CurrentUser() user: any,
-    @Query() query: QueryDemandDto,
-  ) {
+  async getMyDemands(@CurrentUser() user: any, @Query() query: QueryDemandDto) {
     const { userId } = this.extractUser(user);
     const result = await this.demandsService.findMyDemands(userId, query);
     return {

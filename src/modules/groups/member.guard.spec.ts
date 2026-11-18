@@ -1,5 +1,9 @@
 import { MemberGuard } from './member.guard';
-import { ExecutionContext, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  ExecutionContext,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 
 describe('MemberGuard', () => {
   let guard: MemberGuard;
@@ -37,7 +41,9 @@ describe('MemberGuard', () => {
 
   it('should throw ForbiddenException if no user in token', async () => {
     const context = createMockContext({ id: 'grp-1' }, null);
-    await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('should throw NotFoundException if group does not exist', async () => {
@@ -46,7 +52,9 @@ describe('MemberGuard', () => {
     clientMock.from.mockReturnValue({
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
-      single: jest.fn().mockResolvedValue({ data: null, error: { message: 'Not found' } }),
+      single: jest
+        .fn()
+        .mockResolvedValue({ data: null, error: { message: 'Not found' } }),
     });
 
     await expect(guard.canActivate(context)).rejects.toThrow(NotFoundException);
@@ -169,6 +177,8 @@ describe('MemberGuard', () => {
       return {};
     });
 
-    await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 });
